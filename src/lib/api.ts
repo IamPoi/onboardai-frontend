@@ -19,6 +19,7 @@ export interface GraphResult {
   nodes: GraphNode[]
   edges: GraphEdge[]
   stats: { class_count: number; edge_count: number }
+  frameworks: string[]
 }
 
 export interface JobResponse {

@@ -1,10 +1,9 @@
 export const ko = {
   header: {
-    analyzer: 'Spring Boot Analyzer',
     mvp: 'MVP',
   },
-  title: 'Spring 레포지토리 분석',
-  subtitle: 'Controller → Service → Repository 호출 흐름을 시각화합니다',
+  title: 'CodeLens',
+  subtitle: '코드 구조를 분석해 레이어 간 호출 흐름을 시각화합니다',
   form: {
     placeholder: 'https://github.com/spring-projects/spring-petclinic',
     submit: '분석하기',
@@ -45,6 +44,19 @@ export const ko = {
     service: 'Service',
     repository: 'Repository',
   },
+  frameworks: {
+    spring: 'Spring Boot',
+    nestjs: 'NestJS',
+    django: 'Django',
+    fastapi: 'FastAPI',
+    detected: '감지된 프레임워크',
+  },
+  layerNames: {
+    spring: { controller: 'Controller', service: 'Service', repository: 'Repository' },
+    nestjs: { controller: 'Controller', service: 'Service', repository: 'Repository' },
+    django: { controller: 'View', service: 'Service', repository: 'Model' },
+    fastapi: { controller: 'Router', service: 'Service', repository: 'Model' },
+  } as Record<string, { controller: string; service: string; repository: string }>,
   app: {
     reset: '다시 분석하기',
   },

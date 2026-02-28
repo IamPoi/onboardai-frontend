@@ -2,11 +2,10 @@ import type { Translations } from './ko'
 
 export const en: Translations = {
   header: {
-    analyzer: 'Spring Boot Analyzer',
     mvp: 'MVP',
   },
-  title: 'Spring Repository Analyzer',
-  subtitle: 'Visualize the Controller → Service → Repository call flow',
+  title: 'CodeLens',
+  subtitle: 'Visualize the layer-to-layer call flow of your codebase',
   form: {
     placeholder: 'https://github.com/spring-projects/spring-petclinic',
     submit: 'Analyze',
@@ -47,6 +46,19 @@ export const en: Translations = {
     service: 'Service',
     repository: 'Repository',
   },
+  frameworks: {
+    spring: 'Spring Boot',
+    nestjs: 'NestJS',
+    django: 'Django',
+    fastapi: 'FastAPI',
+    detected: 'Detected frameworks',
+  },
+  layerNames: {
+    spring: { controller: 'Controller', service: 'Service', repository: 'Repository' },
+    nestjs: { controller: 'Controller', service: 'Service', repository: 'Repository' },
+    django: { controller: 'View', service: 'Service', repository: 'Model' },
+    fastapi: { controller: 'Router', service: 'Service', repository: 'Model' },
+  } as Record<string, { controller: string; service: string; repository: string }>,
   app: {
     reset: 'Analyze again',
   },
