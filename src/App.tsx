@@ -49,7 +49,7 @@ export default function App() {
   const handleCodeSubmit = useCallback(async (text: string, file: File | null) => {
     setCodeState({ phase: 'loading' })
     try {
-      const result = await analyzeCode(text, file)
+      const result = await analyzeCode(text, file, lang)
       setCodeState({ phase: 'done', result })
     } catch (err) {
       setCodeState({ phase: 'error', message: String(err) })

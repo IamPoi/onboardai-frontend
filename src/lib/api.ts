@@ -60,10 +60,12 @@ export interface CodeAnalysisResult {
 export async function analyzeCode(
   text: string,
   file: File | null,
+  lang: string = 'ko',
 ): Promise<CodeAnalysisResult> {
   const form = new FormData()
   if (text) form.append('text', text)
   if (file) form.append('file', file)
+  form.append('lang', lang)
 
   const res = await fetch(`${BASE_URL}/code-analyze`, {
     method: 'POST',
