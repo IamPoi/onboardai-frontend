@@ -3,7 +3,9 @@ import RepoForm from './components/RepoForm'
 import StatusBanner from './components/StatusBanner'
 import FlowGraph from './components/FlowGraph'
 import AuthModal from './components/AuthModal'
-import { submitRepo, pollJob, type JobResponse, type GraphResult } from './lib/api'
+import TabBar, { type TabKey } from './components/TabBar'
+import CodeAnalysisForm from './components/CodeAnalysisForm'
+import { submitRepo, pollJob, analyzeCode, type JobResponse, type GraphResult, type CodeAnalysisResult } from './lib/api'
 import { getToken, meApi, clearToken, type UserInfo } from './lib/auth'
 import { useLang } from './contexts/LangContext'
 
@@ -33,6 +35,27 @@ export default function App() {
   const { t, lang, setLang } = useLang()
   const [user, setUser] = useState<UserInfo | null>(null)
   const [showAuth, setShowAuth] = useState(false)
+  const [activeTab, setActiveTab] = useState<TabKey>('project')
+
+  // 코드 분석 상태
+  type CodeState =
+    | { phase: 'idle' }
+    | { phase: 'loading' }
+    | { phase: 'done'; result: CodeAnalysisResult }
+    | { phase: 'error'; message: string }
+  const [codeState, setCodeState] = useState<CodeState>({ phase: 'idle' })
+
+  const handleCodeSubmit = useCallback(async (text: string, file: File | null) => {
+    setCodeState({ phase: 'loading' })
+    try {
+      const result = await analyzeCode(text, file)
+      setCodeState({ phase: 'done', result })
+    } catch (err) {
+      setCodeState({ phase: 'error', message: String(err) })
+    }
+  }, [])
+
+  const resetCode = () => setCodeState({ phase: 'idle' })
 
   // 페이지 로드 시 저장된 토큰으로 유저 정보 복원
   useEffect(() => {
@@ -155,22 +178,73 @@ export default function App() {
           <p className="text-gray-500 mt-2 text-sm">{t.subtitle}</p>
         </div>
 
-        {/* Form */}
-        <RepoForm onSubmit={handleSubmit} loading={loading} />
+        {/* 탭 */}
+        <TabBar active={activeTab} onChange={setActiveTab} />
 
-        {/* Status */}
-        {state.phase === 'loading' && (
+        {/* 프로젝트 분석 탭 */}
+        {activeTab === 'project' && (
+          <RepoForm onSubmit={handleSubmit} loading={loading} />
+        )}
+
+        {/* 코드 분석 탭 */}
+        {activeTab === 'code' && codeState.phase === 'idle' && (
+          <CodeAnalysisForm onSubmit={handleCodeSubmit} loading={false} />
+        )}
+        {activeTab === 'code' && codeState.phase === 'loading' && (
+          <CodeAnalysisForm onSubmit={handleCodeSubmit} loading={true} />
+        )}
+
+        {/* 코드 분석 결과 */}
+        {activeTab === 'code' && codeState.phase === 'error' && (
+          <StatusBanner status="failed" error={codeState.message} />
+        )}
+        {activeTab === 'code' && codeState.phase === 'done' && (
+          <>
+            {/* 언어 + 통계 */}
+            <div className="flex items-center gap-3 flex-wrap justify-center">
+              <span className="text-xs px-3 py-1.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-full font-medium">
+                {t.codeAnalysis.language}: {codeState.result.language}
+              </span>
+              {codeState.result.supported && (
+                <span className="text-xs px-3 py-1.5 bg-green-50 text-green-700 border border-green-200 rounded-full font-medium">
+                  {t.status.statsClasses(codeState.result.stats.class_count)}
+                  {' · '}
+                  {t.status.statsEdges(codeState.result.stats.edge_count)}
+                </span>
+              )}
+            </div>
+
+            {/* 지원 언어일 때만 그래프 */}
+            {codeState.result.supported && codeState.result.nodes.length > 0 ? (
+              <div style={{ width: '100%', height: '70vh', minHeight: '500px' }}>
+                <FlowGraph graph={codeState.result} />
+              </div>
+            ) : (
+              <p className="text-sm text-gray-400">{t.codeAnalysis.noGraph}</p>
+            )}
+
+            <button
+              onClick={resetCode}
+              className="text-sm text-gray-500 underline hover:text-gray-700"
+            >
+              {t.app.reset}
+            </button>
+          </>
+        )}
+
+        {/* 프로젝트 분석 Status */}
+        {activeTab === 'project' && state.phase === 'loading' && (
           <StatusBanner status={state.status} />
         )}
-        {state.phase === 'error' && (
+        {activeTab === 'project' && state.phase === 'error' && (
           <StatusBanner status="failed" error={state.message} />
         )}
-        {state.phase === 'done' && (
+        {activeTab === 'project' && state.phase === 'done' && (
           <StatusBanner status="complete" stats={state.stats} />
         )}
 
         {/* Reset button */}
-        {(state.phase === 'done' || state.phase === 'error') && (
+        {activeTab === 'project' && (state.phase === 'done' || state.phase === 'error') && (
           <button
             onClick={reset}
             className="text-sm text-gray-500 underline hover:text-gray-700"
@@ -180,7 +254,7 @@ export default function App() {
         )}
 
         {/* Framework badges + Legend */}
-        {state.phase === 'done' && (
+        {activeTab === 'project' && state.phase === 'done' && (
           <div className="flex flex-col items-center gap-3">
             {/* Detected frameworks */}
             {frameworks.length > 0 && (
@@ -217,7 +291,7 @@ export default function App() {
         )}
 
         {/* Graph */}
-        {state.phase === 'done' && (
+        {activeTab === 'project' && state.phase === 'done' && (
           <div style={{ width: '100%', height: '80vh', minHeight: '600px' }}>
             <FlowGraph graph={state.graph} />
           </div>

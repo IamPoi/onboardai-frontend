@@ -48,6 +48,34 @@ export async function getJob(jobId: string): Promise<JobResponse> {
   return res.json()
 }
 
+export interface CodeAnalysisResult {
+  language: string
+  supported: boolean
+  nodes: GraphNode[]
+  edges: GraphEdge[]
+  stats: { class_count: number; edge_count: number }
+  frameworks: string[]
+}
+
+export async function analyzeCode(
+  text: string,
+  file: File | null,
+): Promise<CodeAnalysisResult> {
+  const form = new FormData()
+  if (text) form.append('text', text)
+  if (file) form.append('file', file)
+
+  const res = await fetch(`${BASE_URL}/code-analyze`, {
+    method: 'POST',
+    body: form,
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}))
+    throw new Error(err.detail ?? `HTTP ${res.status}`)
+  }
+  return res.json()
+}
+
 export function pollJob(
   jobId: string,
   onUpdate: (job: JobResponse) => void,
