@@ -82,6 +82,13 @@ export const en: Translations = {
     language: 'Detected Language',
     noGraph: 'Graph visualization is not supported for this language.',
     unsupported: 'Unsupported language. Currently supports Java, Python, TypeScript, JavaScript.',
+    result: {
+      summary: 'Summary',
+      patterns: 'Key Patterns',
+      errors: 'Potential Errors',
+      usage: 'Usage',
+      recommendations: 'Recommendations',
+    },
     errors: {
       blockedFile: 'Archive or binary files are not allowed.',
       unknownFile: 'Only code files are allowed.',

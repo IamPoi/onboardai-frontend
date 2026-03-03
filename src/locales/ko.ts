@@ -80,6 +80,13 @@ export const ko = {
     language: '감지된 언어',
     noGraph: '이 언어는 그래프 시각화를 지원하지 않습니다.',
     unsupported: '지원하지 않는 언어입니다. 현재 Java, Python, TypeScript, JavaScript를 지원합니다.',
+    result: {
+      summary: '요약',
+      patterns: '주요 패턴',
+      errors: '잠재적 에러',
+      usage: '사용 방법',
+      recommendations: '개선 추천',
+    },
     errors: {
       blockedFile: '압축 파일이나 바이너리 파일은 업로드할 수 없습니다.',
       unknownFile: '코드 파일만 업로드할 수 있습니다.',

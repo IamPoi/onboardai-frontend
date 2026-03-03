@@ -50,11 +50,11 @@ export async function getJob(jobId: string): Promise<JobResponse> {
 
 export interface CodeAnalysisResult {
   language: string
-  supported: boolean
-  nodes: GraphNode[]
-  edges: GraphEdge[]
-  stats: { class_count: number; edge_count: number }
-  frameworks: string[]
+  summary: string
+  patterns: string[]
+  errors: { location: string; description: string }[]
+  usage: string
+  recommendations: { title: string; description: string }[]
 }
 
 export async function analyzeCode(
