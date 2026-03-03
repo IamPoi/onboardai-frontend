@@ -67,4 +67,23 @@ export const en: Translations = {
     ko: '한국어',
     en: 'English',
   },
+  auth: {
+    login: 'Log in',
+    register: 'Sign up',
+    logout: 'Log out',
+    email: 'Email',
+    password: 'Password',
+    emailPlaceholder: 'Enter your email',
+    passwordPlaceholder: 'Password (min 8 characters)',
+    loggingIn: 'Logging in...',
+    registering: 'Signing up...',
+    errors: {
+      emailRequired: 'Please enter your email',
+      passwordRequired: 'Please enter your password',
+      passwordTooShort: 'Password must be at least 8 characters',
+      duplicateEmail: 'This email is already in use',
+      invalidCredentials: 'Invalid email or password',
+      unknown: 'Something went wrong. Please try again',
+    },
+  },
 }

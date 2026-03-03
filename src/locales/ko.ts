@@ -65,6 +65,25 @@ export const ko = {
     ko: '한국어',
     en: 'English',
   },
+  auth: {
+    login: '로그인',
+    register: '회원가입',
+    logout: '로그아웃',
+    email: '이메일',
+    password: '비밀번호',
+    emailPlaceholder: '이메일을 입력하세요',
+    passwordPlaceholder: '비밀번호 (8자 이상)',
+    loggingIn: '로그인 중...',
+    registering: '가입 중...',
+    errors: {
+      emailRequired: '이메일을 입력해주세요',
+      passwordRequired: '비밀번호를 입력해주세요',
+      passwordTooShort: '비밀번호는 8자 이상이어야 합니다',
+      duplicateEmail: '이미 사용 중인 이메일입니다',
+      invalidCredentials: '이메일 또는 비밀번호가 올바르지 않습니다',
+      unknown: '오류가 발생했습니다. 다시 시도해주세요',
+    },
+  },
 }
 
 export type Translations = typeof ko

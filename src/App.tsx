@@ -1,8 +1,10 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import RepoForm from './components/RepoForm'
 import StatusBanner from './components/StatusBanner'
 import FlowGraph from './components/FlowGraph'
+import AuthModal from './components/AuthModal'
 import { submitRepo, pollJob, type JobResponse, type GraphResult } from './lib/api'
+import { getToken, meApi, clearToken, type UserInfo } from './lib/auth'
 import { useLang } from './contexts/LangContext'
 
 type AppState =
@@ -29,6 +31,29 @@ const LEGEND_LAYERS = [
 export default function App() {
   const [state, setState] = useState<AppState>({ phase: 'idle' })
   const { t, lang, setLang } = useLang()
+  const [user, setUser] = useState<UserInfo | null>(null)
+  const [showAuth, setShowAuth] = useState(false)
+
+  // 페이지 로드 시 저장된 토큰으로 유저 정보 복원
+  useEffect(() => {
+    const token = getToken()
+    if (!token) return
+    meApi(token)
+      .then(setUser)
+      .catch(() => clearToken())
+  }, [])
+
+  const handleAuthSuccess = (token: string, email: string) => {
+    setShowAuth(false)
+    meApi(token)
+      .then(setUser)
+      .catch(() => setUser({ id: 0, email, created_at: '' }))
+  }
+
+  const handleLogout = () => {
+    clearToken()
+    setUser(null)
+  }
 
   const handleSubmit = useCallback(async (url: string) => {
     try {
@@ -70,6 +95,14 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
+      {/* Auth 모달 */}
+      {showAuth && (
+        <AuthModal
+          onClose={() => setShowAuth(false)}
+          onSuccess={handleAuthSuccess}
+        />
+      )}
+
       {/* Header */}
       <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -88,6 +121,28 @@ export default function App() {
             <option value="ko">{t.lang.ko}</option>
             <option value="en">{t.lang.en}</option>
           </select>
+
+          {/* 로그인/유저 영역 */}
+          {user ? (
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-gray-500 max-w-[140px] truncate">{user.email}</span>
+              <button
+                onClick={handleLogout}
+                className="text-xs px-3 py-1 rounded-lg border border-gray-200 text-gray-600
+                           hover:bg-gray-50 transition-colors"
+              >
+                {t.auth.logout}
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => setShowAuth(true)}
+              className="text-xs px-3 py-1.5 bg-blue-600 text-white rounded-lg font-medium
+                         hover:bg-blue-700 transition-colors"
+            >
+              {t.auth.login}
+            </button>
+          )}
         </div>
       </header>
 
