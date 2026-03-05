@@ -6,7 +6,7 @@ import type { Translations } from '../locales/ko'
 type Lang = 'ko' | 'en'
 
 const LOCALES: Record<Lang, Translations> = { ko, en }
-const STORAGE_KEY = 'codelens-lang'
+const STORAGE_KEY = 'onboardai-lang'
 
 interface LangContextValue {
   lang: Lang

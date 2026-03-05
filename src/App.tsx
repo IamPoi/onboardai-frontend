@@ -130,7 +130,7 @@ export default function App() {
       {/* Header */}
       <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <span className="text-xl font-bold text-gray-900 tracking-tight">CodeLens</span>
+          <span className="text-xl font-bold text-gray-900 tracking-tight">OnboardAI</span>
           <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full font-medium">
             {t.header.mvp}
           </span>

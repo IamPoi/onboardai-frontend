@@ -4,7 +4,7 @@ export const en: Translations = {
   header: {
     mvp: 'MVP',
   },
-  title: 'CodeLens',
+  title: 'OnboardAI',
   subtitle: 'Visualize the layer-to-layer call flow of your codebase',
   form: {
     placeholder: 'https://github.com/spring-projects/spring-petclinic',

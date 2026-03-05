@@ -2,7 +2,7 @@ export const ko = {
   header: {
     mvp: 'MVP',
   },
-  title: 'CodeLens',
+  title: 'OnboardAI',
   subtitle: '코드 구조를 분석해 레이어 간 호출 흐름을 시각화합니다',
   form: {
     placeholder: 'https://github.com/spring-projects/spring-petclinic',
