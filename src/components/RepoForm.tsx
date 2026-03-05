@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useLang } from '../contexts/LangContext'
+import { wakeUpServer } from '../lib/api'
 
 interface Props {
   onSubmit: (url: string) => void
@@ -9,7 +10,13 @@ interface Props {
 export default function RepoForm({ onSubmit, loading }: Props) {
   const [url, setUrl] = useState('')
   const [error, setError] = useState('')
+  const [serverReady, setServerReady] = useState(false)
   const { t } = useLang()
+
+  // 마운트 시 백엔드 선제 wake-up — Render.com cold start 방지
+  useEffect(() => {
+    wakeUpServer().then(() => setServerReady(true))
+  }, [])
 
   function validate(value: string): string {
     if (!value.trim()) return t.form.errors.emptyUrl
@@ -53,6 +60,13 @@ export default function RepoForm({ onSubmit, loading }: Props) {
       </div>
       {error && (
         <p className="text-red-500 text-sm">{error}</p>
+      )}
+      {/* 서버 상태 표시 */}
+      {!serverReady && !loading && (
+        <p className="text-xs text-slate-400 flex items-center gap-1.5">
+          <span className="inline-block w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+          서버 연결 중... (첫 연결 시 최대 60초 소요)
+        </p>
       )}
     </form>
   )

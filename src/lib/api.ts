@@ -36,18 +36,44 @@ export interface JobResponse {
   error?: string
 }
 
-export async function submitRepo(repoUrl: string): Promise<string> {
-  const res = await fetch(`${BASE_URL}/analyze`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ repo_url: repoUrl }),
-  })
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}))
-    throw new Error(err.detail ?? `HTTP ${res.status}`)
+// 백엔드 wake-up용 — Render.com free tier cold start 방지
+export async function wakeUpServer(): Promise<void> {
+  try {
+    await fetch(`${BASE_URL}/health_check`, { method: 'GET' })
+  } catch {
+    // 실패해도 무시 — wake-up 목적이므로
   }
-  const data = await res.json()
-  return data.job_id as string
+}
+
+export async function submitRepo(repoUrl: string): Promise<string> {
+  // 90초 타임아웃 — Render.com cold start(~60초) 대응
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 90_000)
+
+  try {
+    const res = await fetch(`${BASE_URL}/analyze`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ repo_url: repoUrl }),
+      signal: controller.signal,
+    })
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}))
+      throw new Error(err.detail ?? `HTTP ${res.status}`)
+    }
+    const data = await res.json()
+    return data.job_id as string
+  } catch (err) {
+    if (err instanceof Error && err.name === 'AbortError') {
+      throw new Error('서버 응답 시간이 초과됐습니다. 다시 시도해주세요.')
+    }
+    if (err instanceof TypeError) {
+      throw new Error('서버에 연결할 수 없습니다. 잠시 후 다시 시도해주세요.')
+    }
+    throw err
+  } finally {
+    clearTimeout(timeout)
+  }
 }
 
 export async function getJob(jobId: string): Promise<JobResponse> {

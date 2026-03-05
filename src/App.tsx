@@ -103,27 +103,40 @@ export default function App() {
   }, [state, lang])
 
   const handleSubmit = useCallback(async (url: string) => {
-    setInlineOnboarding({ phase: 'idle' }) // 새 분석 시 인라인 온보딩 초기화
-    try {
-      const jobId = await submitRepo(url)
-      setState({ phase: 'loading', jobId, status: 'pending' })
+    setInlineOnboarding({ phase: 'idle' })
 
-      const cancel = pollJob(jobId, (job: JobResponse) => {
-        if (job.status === 'complete' && job.result) {
-          cancel()
-          setState({ phase: 'done', graph: job.result, stats: job.result.stats, repoUrl: url })
-        } else if (job.status === 'failed') {
-          cancel()
-          setState({ phase: 'error', message: job.error ?? t.errors.unknown })
-        } else {
-          setState(prev =>
-            prev.phase === 'loading' ? { ...prev, status: job.status } : prev
-          )
+    const trySubmit = async (isRetry = false): Promise<void> => {
+      try {
+        const jobId = await submitRepo(url)
+        setState({ phase: 'loading', jobId, status: 'pending' })
+
+        const cancel = pollJob(jobId, (job: JobResponse) => {
+          if (job.status === 'complete' && job.result) {
+            cancel()
+            setState({ phase: 'done', graph: job.result, stats: job.result.stats, repoUrl: url })
+          } else if (job.status === 'failed') {
+            cancel()
+            setState({ phase: 'error', message: job.error ?? t.errors.unknown })
+          } else {
+            setState(prev =>
+              prev.phase === 'loading' ? { ...prev, status: job.status } : prev
+            )
+          }
+        })
+      } catch (err) {
+        // 네트워크 오류이고 첫 시도이면 5초 후 자동 재시도
+        const isNetworkError = err instanceof Error &&
+          (err.message.includes('연결할 수 없습니다') || err.message.includes('초과됐습니다'))
+        if (isNetworkError && !isRetry) {
+          setState({ phase: 'loading', jobId: '', status: 'pending' })
+          await new Promise(r => setTimeout(r, 5000))
+          return trySubmit(true)
         }
-      })
-    } catch (err) {
-      setState({ phase: 'error', message: String(err) })
+        setState({ phase: 'error', message: String(err) })
+      }
     }
+
+    await trySubmit()
   }, [t])
 
   const reset = () => { setState({ phase: 'idle' }); setInlineOnboarding({ phase: 'idle' }) }
