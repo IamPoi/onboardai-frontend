@@ -6,6 +6,7 @@ import AuthModal from './components/AuthModal'
 import TabBar, { type TabKey } from './components/TabBar'
 import CodeAnalysisForm from './components/CodeAnalysisForm'
 import CodeAnalysisResult from './components/CodeAnalysisResult'
+import OnboardingGuide from './components/OnboardingGuide'
 import { submitRepo, pollJob, analyzeCode, type JobResponse, type GraphResult, type CodeAnalysisResult as CodeAnalysisData } from './lib/api'
 import { getToken, meApi, clearToken, type UserInfo } from './lib/auth'
 import { useLang } from './contexts/LangContext'
@@ -128,10 +129,10 @@ export default function App() {
       )}
 
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+      <header className="bg-slate-900 px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <span className="text-xl font-bold text-gray-900 tracking-tight">OnboardAI</span>
-          <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full font-medium">
+          <span className="text-xl font-bold text-white tracking-tight">OnboardAI</span>
+          <span className="text-xs px-2 py-0.5 bg-emerald-500/20 text-emerald-400 rounded-full font-medium border border-emerald-500/30">
             {t.header.mvp}
           </span>
         </div>
@@ -139,8 +140,8 @@ export default function App() {
           <select
             value={lang}
             onChange={e => setLang(e.target.value as 'ko' | 'en')}
-            className="text-xs px-2 py-1 rounded border border-gray-200 bg-white text-gray-600
-                       focus:outline-none focus:ring-1 focus:ring-blue-400 cursor-pointer"
+            className="text-xs px-2 py-1 rounded border border-slate-600 bg-slate-800 text-slate-300
+                       focus:outline-none focus:ring-1 focus:ring-emerald-500 cursor-pointer"
           >
             <option value="ko">{t.lang.ko}</option>
             <option value="en">{t.lang.en}</option>
@@ -149,11 +150,11 @@ export default function App() {
           {/* 로그인/유저 영역 */}
           {user ? (
             <div className="flex items-center gap-2">
-              <span className="text-xs text-gray-500 max-w-[140px] truncate">{user.email}</span>
+              <span className="text-xs text-slate-400 max-w-[140px] truncate">{user.email}</span>
               <button
                 onClick={handleLogout}
-                className="text-xs px-3 py-1 rounded-lg border border-gray-200 text-gray-600
-                           hover:bg-gray-50 transition-colors"
+                className="text-xs px-3 py-1 rounded-lg border border-slate-600 text-slate-300
+                           hover:bg-slate-800 transition-colors"
               >
                 {t.auth.logout}
               </button>
@@ -161,8 +162,8 @@ export default function App() {
           ) : (
             <button
               onClick={() => setShowAuth(true)}
-              className="text-xs px-3 py-1.5 bg-blue-600 text-white rounded-lg font-medium
-                         hover:bg-blue-700 transition-colors"
+              className="text-xs px-3 py-1.5 bg-emerald-500 text-white rounded-lg font-medium
+                         hover:bg-emerald-600 transition-colors"
             >
               {t.auth.login}
             </button>
@@ -175,8 +176,8 @@ export default function App() {
 
         {/* Title */}
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900">{t.title}</h1>
-          <p className="text-gray-500 mt-2 text-sm">{t.subtitle}</p>
+          <h1 className="text-3xl font-bold text-slate-900">{t.title}</h1>
+          <p className="text-slate-500 mt-2 text-sm">{t.subtitle}</p>
         </div>
 
         {/* 탭 */}
@@ -271,6 +272,11 @@ export default function App() {
           <div style={{ width: '100%', height: '80vh', minHeight: '600px' }}>
             <FlowGraph graph={state.graph} />
           </div>
+        )}
+
+        {/* 온보딩 가이드 탭 */}
+        {activeTab === 'onboarding' && (
+          <OnboardingGuide lang={lang} />
         )}
       </main>
     </div>

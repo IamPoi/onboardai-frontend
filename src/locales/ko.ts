@@ -68,6 +68,17 @@ export const ko = {
   tabs: {
     project: '프로젝트 분석',
     code: '코드 분석',
+    onboarding: '온보딩 가이드',
+  },
+  onboarding: {
+    title: '온보딩 가이드 생성',
+    subtitle: '레포지토리 URL을 입력하면 신규 개발자를 위한 온보딩 가이드를 자동으로 생성합니다',
+    analyze: '가이드 생성',
+    analyzing: '분석 중...',
+    architectureSummary: '아키텍처 요약',
+    topClasses: '핵심 클래스 Top 5',
+    keyConcepts: '핵심 용어 사전',
+    tip: '온보딩 팁',
   },
   codeAnalysis: {
     textLabel: '코드 입력',

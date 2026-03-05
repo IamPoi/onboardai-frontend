@@ -20,6 +20,14 @@ export interface GraphResult {
   edges: GraphEdge[]
   stats: { class_count: number; edge_count: number }
   frameworks: string[]
+  mermaid_syntax?: string
+}
+
+export interface OnboardingResult {
+  architecture_summary: string
+  top_classes: { name: string; layer: string; role: string; why_important: string }[]
+  key_concepts: { term: string; definition: string }[]
+  onboarding_tip: string
 }
 
 export interface JobResponse {
@@ -70,6 +78,19 @@ export async function analyzeCode(
   const res = await fetch(`${BASE_URL}/code-analyze`, {
     method: 'POST',
     body: form,
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}))
+    throw new Error(err.detail ?? `HTTP ${res.status}`)
+  }
+  return res.json()
+}
+
+export async function onboardingApi(repoUrl: string, lang: string): Promise<OnboardingResult> {
+  const res = await fetch(`${BASE_URL}/onboarding`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ repo_url: repoUrl, lang }),
   })
   if (!res.ok) {
     const err = await res.json().catch(() => ({}))

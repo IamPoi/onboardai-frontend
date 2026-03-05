@@ -70,6 +70,17 @@ export const en: Translations = {
   tabs: {
     project: 'Project Analysis',
     code: 'Code Analysis',
+    onboarding: 'Onboarding Guide',
+  },
+  onboarding: {
+    title: 'Generate Onboarding Guide',
+    subtitle: 'Enter a repository URL to automatically generate an onboarding guide for new developers',
+    analyze: 'Generate Guide',
+    analyzing: 'Analyzing...',
+    architectureSummary: 'Architecture Summary',
+    topClasses: 'Top 5 Key Classes',
+    keyConcepts: 'Key Concepts Glossary',
+    tip: 'Onboarding Tip',
   },
   codeAnalysis: {
     textLabel: 'Code Input',
