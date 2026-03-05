@@ -38,6 +38,13 @@ export const ko = {
     nodeCount: (n: number) => `${n}개 노드`,
     edgeCount: (n: number) => `${n}개 연결`,
     moreItems: (n: number) => `+${n}개 더`,
+    searchPlaceholder: '클래스 검색...',
+    layoutRadial: '방사형',
+    layoutLayered: '레이어',
+    keyClass: '핵심 클래스',
+    incomingDeps: '의존받는 곳',
+    outgoingDeps: '의존하는 곳',
+    methods: '메서드',
   },
   legend: {
     controller: 'Controller',

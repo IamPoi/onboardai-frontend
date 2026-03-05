@@ -40,6 +40,13 @@ export const en: Translations = {
     nodeCount: (n: number) => `${n} nodes`,
     edgeCount: (n: number) => `${n} connections`,
     moreItems: (n: number) => `+${n} more`,
+    searchPlaceholder: 'Search classes...',
+    layoutRadial: 'Radial',
+    layoutLayered: 'Layered',
+    keyClass: 'Key Class',
+    incomingDeps: 'Incoming',
+    outgoingDeps: 'Outgoing',
+    methods: 'Methods',
   },
   legend: {
     controller: 'Controller',

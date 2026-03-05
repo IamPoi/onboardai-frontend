@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { onboardingApi, type OnboardingResult } from '../lib/api'
 import { useLang } from '../contexts/LangContext'
 
@@ -13,14 +13,28 @@ const LAYER_BADGE: Record<string, string> = {
 
 interface Props {
   lang: 'ko' | 'en'
+  prefilledUrl?: string | null
 }
 
-export default function OnboardingGuide({ lang }: Props) {
+export default function OnboardingGuide({ lang, prefilledUrl }: Props) {
   const { t } = useLang()
-  const [url, setUrl] = useState('')
+  const [url, setUrl] = useState(prefilledUrl ?? '')
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<OnboardingResult | null>(null)
   const [error, setError] = useState<string | null>(null)
+
+  // prefilledUrl이 들어오면 자동으로 API 호출
+  useEffect(() => {
+    if (!prefilledUrl) return
+    setUrl(prefilledUrl)
+    setResult(null)
+    setError(null)
+    setLoading(true)
+    onboardingApi(prefilledUrl, lang)
+      .then(data => setResult(data))
+      .catch(err => setError(String(err)))
+      .finally(() => setLoading(false))
+  }, [prefilledUrl, lang])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -111,6 +125,19 @@ export default function OnboardingGuide({ lang }: Props) {
         <button onClick={reset} className="text-sm text-slate-400 underline hover:text-slate-600 self-center">
           {t.app.reset}
         </button>
+      </div>
+    )
+  }
+
+  // prefilledUrl로 자동 제출 중일 때 스피너 표시
+  if (loading && prefilledUrl) {
+    return (
+      <div className="w-full max-w-xl mx-auto">
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-12 flex flex-col items-center gap-4">
+          <div className="w-10 h-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+          <p className="text-sm text-slate-500">{t.onboarding.analyzing}</p>
+          <p className="text-xs text-slate-400 font-mono truncate max-w-full">{prefilledUrl}</p>
+        </div>
       </div>
     )
   }

@@ -14,7 +14,7 @@ import { useLang } from './contexts/LangContext'
 type AppState =
   | { phase: 'idle' }
   | { phase: 'loading'; jobId: string; status: JobResponse['status'] }
-  | { phase: 'done'; graph: GraphResult; stats: { class_count: number; edge_count: number } }
+  | { phase: 'done'; graph: GraphResult; stats: { class_count: number; edge_count: number }; repoUrl: string }
   | { phase: 'error'; message: string }
 
 // Framework badge colors
@@ -38,6 +38,7 @@ export default function App() {
   const [user, setUser] = useState<UserInfo | null>(null)
   const [showAuth, setShowAuth] = useState(false)
   const [activeTab, setActiveTab] = useState<TabKey>('project')
+  const [onboardingPrefilledUrl, setOnboardingPrefilledUrl] = useState<string | null>(null)
 
   // 코드 분석 상태
   type CodeState =
@@ -88,7 +89,7 @@ export default function App() {
       const cancel = pollJob(jobId, (job: JobResponse) => {
         if (job.status === 'complete' && job.result) {
           cancel()
-          setState({ phase: 'done', graph: job.result, stats: job.result.stats })
+          setState({ phase: 'done', graph: job.result, stats: job.result.stats, repoUrl: url })
         } else if (job.status === 'failed') {
           cancel()
           setState({ phase: 'error', message: job.error ?? t.errors.unknown })
@@ -217,7 +218,21 @@ export default function App() {
           <StatusBanner status="failed" error={state.message} />
         )}
         {activeTab === 'project' && state.phase === 'done' && (
-          <StatusBanner status="complete" stats={state.stats} />
+          <>
+            <StatusBanner status="complete" stats={state.stats} />
+            <button
+              onClick={() => {
+                setOnboardingPrefilledUrl(state.repoUrl)
+                setActiveTab('onboarding')
+              }}
+              className="px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-white
+                         font-semibold rounded-xl shadow-lg hover:shadow-xl hover:scale-105
+                         transition-all text-sm flex items-center gap-2"
+            >
+              <span>🚀 온보딩 가이드 생성</span>
+              <span className="text-xs bg-white/20 px-2 py-0.5 rounded-full">Premium</span>
+            </button>
+          </>
         )}
 
         {/* Reset button */}
@@ -276,7 +291,7 @@ export default function App() {
 
         {/* 온보딩 가이드 탭 */}
         {activeTab === 'onboarding' && (
-          <OnboardingGuide lang={lang} />
+          <OnboardingGuide lang={lang} prefilledUrl={onboardingPrefilledUrl} />
         )}
       </main>
     </div>
