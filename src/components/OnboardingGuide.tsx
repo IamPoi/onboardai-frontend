@@ -14,13 +14,14 @@ const LAYER_BADGE: Record<string, string> = {
 interface Props {
   lang: 'ko' | 'en'
   prefilledUrl?: string | null
+  preloadedResult?: OnboardingResult | null
 }
 
-export default function OnboardingGuide({ lang, prefilledUrl }: Props) {
+export default function OnboardingGuide({ lang, prefilledUrl, preloadedResult }: Props) {
   const { t } = useLang()
   const [url, setUrl] = useState(prefilledUrl ?? '')
   const [loading, setLoading] = useState(false)
-  const [result, setResult] = useState<OnboardingResult | null>(null)
+  const [result, setResult] = useState<OnboardingResult | null>(preloadedResult ?? null)
   const [error, setError] = useState<string | null>(null)
 
   // prefilledUrl이 들어오면 자동으로 API 호출

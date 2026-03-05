@@ -87,16 +87,33 @@ export async function analyzeCode(
 }
 
 export async function onboardingApi(repoUrl: string, lang: string): Promise<OnboardingResult> {
-  const res = await fetch(`${BASE_URL}/onboarding`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ repo_url: repoUrl, lang }),
-  })
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}))
-    throw new Error(err.detail ?? `HTTP ${res.status}`)
+  // 90초 타임아웃 (cold start + clone + Groq API 시간 고려)
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 90_000)
+
+  try {
+    const res = await fetch(`${BASE_URL}/onboarding`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ repo_url: repoUrl, lang }),
+      signal: controller.signal,
+    })
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}))
+      throw new Error(err.detail ?? `HTTP ${res.status}`)
+    }
+    return res.json()
+  } catch (err) {
+    if (err instanceof Error && err.name === 'AbortError') {
+      throw new Error('요청 시간이 초과됐습니다. 다시 시도해주세요.')
+    }
+    if (err instanceof TypeError) {
+      throw new Error('서버에 연결할 수 없습니다. 잠시 후 다시 시도해주세요.')
+    }
+    throw err
+  } finally {
+    clearTimeout(timeout)
   }
-  return res.json()
 }
 
 export function pollJob(

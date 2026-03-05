@@ -7,7 +7,7 @@ import TabBar, { type TabKey } from './components/TabBar'
 import CodeAnalysisForm from './components/CodeAnalysisForm'
 import CodeAnalysisResult from './components/CodeAnalysisResult'
 import OnboardingGuide from './components/OnboardingGuide'
-import { submitRepo, pollJob, analyzeCode, type JobResponse, type GraphResult, type CodeAnalysisResult as CodeAnalysisData } from './lib/api'
+import { submitRepo, pollJob, analyzeCode, onboardingApi, type JobResponse, type GraphResult, type CodeAnalysisResult as CodeAnalysisData, type OnboardingResult } from './lib/api'
 import { getToken, meApi, clearToken, type UserInfo } from './lib/auth'
 import { useLang } from './contexts/LangContext'
 
@@ -38,7 +38,14 @@ export default function App() {
   const [user, setUser] = useState<UserInfo | null>(null)
   const [showAuth, setShowAuth] = useState(false)
   const [activeTab, setActiveTab] = useState<TabKey>('project')
-  const [onboardingPrefilledUrl, setOnboardingPrefilledUrl] = useState<string | null>(null)
+
+  // 프로젝트 탭 인라인 온보딩 상태
+  type InlineOnboarding =
+    | { phase: 'idle' }
+    | { phase: 'loading' }
+    | { phase: 'done'; result: OnboardingResult }
+    | { phase: 'error'; message: string }
+  const [inlineOnboarding, setInlineOnboarding] = useState<InlineOnboarding>({ phase: 'idle' })
 
   // 코드 분석 상태
   type CodeState =
@@ -81,7 +88,20 @@ export default function App() {
     setUser(null)
   }
 
+  // 인라인 온보딩 CTA 핸들러 — 탭 전환 없이 바로 가이드 생성
+  const handleOnboardingCTA = useCallback(async () => {
+    if (state.phase !== 'done') return
+    setInlineOnboarding({ phase: 'loading' })
+    try {
+      const result = await onboardingApi(state.repoUrl, lang)
+      setInlineOnboarding({ phase: 'done', result })
+    } catch (err) {
+      setInlineOnboarding({ phase: 'error', message: String(err) })
+    }
+  }, [state, lang])
+
   const handleSubmit = useCallback(async (url: string) => {
+    setInlineOnboarding({ phase: 'idle' }) // 새 분석 시 인라인 온보딩 초기화
     try {
       const jobId = await submitRepo(url)
       setState({ phase: 'loading', jobId, status: 'pending' })
@@ -104,7 +124,7 @@ export default function App() {
     }
   }, [t])
 
-  const reset = () => setState({ phase: 'idle' })
+  const reset = () => { setState({ phase: 'idle' }); setInlineOnboarding({ phase: 'idle' }) }
 
   const loading = state.phase === 'loading'
 
@@ -218,21 +238,7 @@ export default function App() {
           <StatusBanner status="failed" error={state.message} />
         )}
         {activeTab === 'project' && state.phase === 'done' && (
-          <>
-            <StatusBanner status="complete" stats={state.stats} />
-            <button
-              onClick={() => {
-                setOnboardingPrefilledUrl(state.repoUrl)
-                setActiveTab('onboarding')
-              }}
-              className="px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-white
-                         font-semibold rounded-xl shadow-lg hover:shadow-xl hover:scale-105
-                         transition-all text-sm flex items-center gap-2"
-            >
-              <span>🚀 온보딩 가이드 생성</span>
-              <span className="text-xs bg-white/20 px-2 py-0.5 rounded-full">Premium</span>
-            </button>
-          </>
+          <StatusBanner status="complete" stats={state.stats} />
         )}
 
         {/* Reset button */}
@@ -289,9 +295,56 @@ export default function App() {
           </div>
         )}
 
-        {/* 온보딩 가이드 탭 */}
+        {/* 인라인 온보딩 가이드 — 그래프 아래, 프로젝트 탭 */}
+        {activeTab === 'project' && state.phase === 'done' && inlineOnboarding.phase === 'idle' && (
+          <div className="w-full max-w-2xl flex flex-col items-center gap-2 py-4">
+            <button
+              onClick={handleOnboardingCTA}
+              className="px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-500 text-white
+                         font-semibold rounded-2xl shadow-lg hover:shadow-xl hover:scale-105
+                         transition-all text-sm flex items-center gap-3"
+            >
+              <span className="text-lg">🚀</span>
+              <span>온보딩 가이드 자동 생성</span>
+              <span className="text-xs bg-white/20 px-2.5 py-1 rounded-full font-medium">AI</span>
+            </button>
+            <p className="text-xs text-slate-400">신규 개발자를 위한 아키텍처 가이드를 자동으로 만들어드립니다</p>
+          </div>
+        )}
+
+        {activeTab === 'project' && inlineOnboarding.phase === 'loading' && (
+          <div className="w-full max-w-2xl flex flex-col items-center gap-4 py-8">
+            <div className="w-10 h-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+            <p className="text-sm text-slate-500">온보딩 가이드 생성 중... (최대 60초 소요)</p>
+          </div>
+        )}
+
+        {activeTab === 'project' && inlineOnboarding.phase === 'error' && (
+          <div className="w-full max-w-2xl flex flex-col items-center gap-3 py-4">
+            <div className="w-full p-4 bg-red-50 text-red-600 rounded-xl text-sm border border-red-100">
+              {inlineOnboarding.message}
+            </div>
+            <button
+              onClick={handleOnboardingCTA}
+              className="text-sm text-emerald-600 underline hover:text-emerald-700"
+            >
+              다시 시도
+            </button>
+          </div>
+        )}
+
+        {activeTab === 'project' && inlineOnboarding.phase === 'done' && (
+          <div className="w-full max-w-3xl">
+            <OnboardingGuide
+              lang={lang}
+              preloadedResult={inlineOnboarding.result}
+            />
+          </div>
+        )}
+
+        {/* 온보딩 가이드 탭 — 독립 사용 */}
         {activeTab === 'onboarding' && (
-          <OnboardingGuide lang={lang} prefilledUrl={onboardingPrefilledUrl} />
+          <OnboardingGuide lang={lang} />
         )}
       </main>
     </div>
