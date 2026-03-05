@@ -7,6 +7,7 @@ import TabBar, { type TabKey } from './components/TabBar'
 import CodeAnalysisForm from './components/CodeAnalysisForm'
 import CodeAnalysisResult from './components/CodeAnalysisResult'
 import OnboardingGuide from './components/OnboardingGuide'
+import PaymentModal from './components/PaymentModal'
 import { submitRepo, pollJob, analyzeCode, onboardingApi, type JobResponse, type GraphResult, type CodeAnalysisResult as CodeAnalysisData, type OnboardingResult } from './lib/api'
 import { getToken, meApi, clearToken, type UserInfo } from './lib/auth'
 import { useLang } from './contexts/LangContext'
@@ -38,6 +39,7 @@ export default function App() {
   const [user, setUser] = useState<UserInfo | null>(null)
   const [showAuth, setShowAuth] = useState(false)
   const [activeTab, setActiveTab] = useState<TabKey>('project')
+  const [showPaymentModal, setShowPaymentModal] = useState(false)
 
   // 프로젝트 탭 인라인 온보딩 상태
   type InlineOnboarding =
@@ -146,6 +148,17 @@ export default function App() {
         <AuthModal
           onClose={() => setShowAuth(false)}
           onSuccess={handleAuthSuccess}
+        />
+      )}
+
+      {/* 결제 유도 모달 */}
+      {showPaymentModal && (
+        <PaymentModal
+          onClose={() => setShowPaymentModal(false)}
+          onConfirm={() => {
+            setShowPaymentModal(false)
+            handleOnboardingCTA()
+          }}
         />
       )}
 
@@ -295,20 +308,20 @@ export default function App() {
           </div>
         )}
 
-        {/* 인라인 온보딩 가이드 — 그래프 아래, 프로젝트 탭 */}
+        {/* 온보딩 가이드 버튼 — 그래프 아래 */}
         {activeTab === 'project' && state.phase === 'done' && inlineOnboarding.phase === 'idle' && (
           <div className="w-full max-w-2xl flex flex-col items-center gap-2 py-4">
             <button
-              onClick={handleOnboardingCTA}
+              onClick={() => setShowPaymentModal(true)}
               className="px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-500 text-white
                          font-semibold rounded-2xl shadow-lg hover:shadow-xl hover:scale-105
                          transition-all text-sm flex items-center gap-3"
             >
               <span className="text-lg">🚀</span>
-              <span>온보딩 가이드 자동 생성</span>
-              <span className="text-xs bg-white/20 px-2.5 py-1 rounded-full font-medium">AI</span>
+              <span>온보딩 가이드 생성하기</span>
+              <span className="text-xs bg-white/20 px-2.5 py-1 rounded-full font-medium">Premium</span>
             </button>
-            <p className="text-xs text-slate-400">신규 개발자를 위한 아키텍처 가이드를 자동으로 만들어드립니다</p>
+            <p className="text-xs text-slate-400">신규 개발자를 위한 AI 온보딩 가이드를 자동으로 생성합니다</p>
           </div>
         )}
 
@@ -342,10 +355,6 @@ export default function App() {
           </div>
         )}
 
-        {/* 온보딩 가이드 탭 — 독립 사용 */}
-        {activeTab === 'onboarding' && (
-          <OnboardingGuide lang={lang} />
-        )}
       </main>
     </div>
   )

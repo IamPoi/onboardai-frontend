@@ -2,10 +2,9 @@ import { useLang } from '../contexts/LangContext'
 
 export type TabKey = 'project' | 'code' | 'onboarding'
 
-const TAB_ICONS: Record<TabKey, string> = {
-  project:    '🔍',
-  code:       '📄',
-  onboarding: '🚀',
+const TAB_ICONS: Record<string, string> = {
+  project: '🔍',
+  code:    '📄',
 }
 
 interface Props {
@@ -16,15 +15,14 @@ interface Props {
 export default function TabBar({ active, onChange }: Props) {
   const { t } = useLang()
 
-  const labels: Record<TabKey, string> = {
-    project:    t.tabs.project,
-    code:       t.tabs.code,
-    onboarding: t.tabs.onboarding,
+  const labels: Record<string, string> = {
+    project: t.tabs.project,
+    code:    t.tabs.code,
   }
 
   return (
-    <div className="flex gap-1 bg-slate-100 rounded-xl p-1 w-full max-w-md">
-      {(['project', 'code', 'onboarding'] as TabKey[]).map(tab => (
+    <div className="flex gap-1 bg-slate-100 rounded-xl p-1 w-full max-w-sm">
+      {(['project', 'code'] as const).map(tab => (
         <button
           key={tab}
           onClick={() => onChange(tab)}
