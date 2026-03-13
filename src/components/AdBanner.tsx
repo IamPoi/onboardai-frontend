@@ -28,15 +28,6 @@ export default function AdBanner({ slot, format = 'auto', className = '' }: Prop
     }
   }, [])
 
-  // publisher ID가 placeholder이면 개발 환경에서 빈 공간 표시
-  if (PUBLISHER_ID === 'ca-pub-XXXXXXXXXXXXXXXXX') {
-    return (
-      <div className={`flex items-center justify-center bg-slate-100 border border-dashed border-slate-300 rounded-lg text-slate-400 text-xs ${className}`}>
-        광고 영역 (AdSense 연동 후 활성화)
-      </div>
-    )
-  }
-
   return (
     <div className={className}>
       <ins
