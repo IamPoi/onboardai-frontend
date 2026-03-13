@@ -263,7 +263,7 @@ export default function App() {
 
         {/* 광고 — 코드 분석 결과 상단 */}
         {activeTab === 'code' && (codeState.phase === 'done' || codeState.phase === 'error') && (
-          <AdBanner slot="1234567890" format="horizontal" className="w-full max-w-2xl h-[90px]" />
+          <AdBanner slot="7183168015" format="horizontal" className="w-full max-w-2xl h-[90px]" />
         )}
 
         {/* 코드 분석 결과 */}
@@ -389,7 +389,7 @@ export default function App() {
               preloadedResult={inlineOnboarding.result}
             />
             {/* 광고 — 온보딩 가이드 하단 */}
-            <AdBanner slot="0987654321" format="rectangle" className="w-full h-[250px]" />
+            <AdBanner slot="7183168015" format="rectangle" className="w-full h-[250px]" />
           </div>
         )}
 
