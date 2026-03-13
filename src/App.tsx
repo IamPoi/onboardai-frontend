@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import RepoForm from './components/RepoForm'
 import StatusBanner from './components/StatusBanner'
 import FlowGraph from './components/FlowGraph'
@@ -41,8 +41,21 @@ export default function App() {
   const [user, setUser] = useState<UserInfo | null>(null)
   const [showAuth, setShowAuth] = useState(false)
   const [showMyPage, setShowMyPage] = useState(false)
+  const [showUserMenu, setShowUserMenu] = useState(false)
   const [activeTab, setActiveTab] = useState<TabKey>('project')
   const [showPaymentModal, setShowPaymentModal] = useState(false)
+  const userMenuRef = useRef<HTMLDivElement>(null)
+
+  // 유저 메뉴 외부 클릭 시 닫기
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+        setShowUserMenu(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   // 프로젝트 탭 인라인 온보딩 상태
   type InlineOnboarding =
@@ -160,7 +173,10 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-slate-50 flex flex-col" style={{
+      backgroundImage: 'linear-gradient(rgba(148,163,184,0.12) 1px, transparent 1px), linear-gradient(90deg, rgba(148,163,184,0.12) 1px, transparent 1px)',
+      backgroundSize: '32px 32px',
+    }}>
       {/* Auth 모달 */}
       {showAuth && (
         <AuthModal
@@ -191,18 +207,18 @@ export default function App() {
       )}
 
       {/* Header */}
-      <header className="bg-slate-900 px-6 py-4 flex items-center justify-between">
+      <header className="sticky top-0 z-40 bg-slate-900/95 backdrop-blur border-b border-slate-800 px-6 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <span className="text-xl font-bold text-white tracking-tight">OnboardAI</span>
-          <span className="text-xs px-2 py-0.5 bg-emerald-500/20 text-emerald-400 rounded-full font-medium border border-emerald-500/30">
-            {t.header.mvp}
+          <span className="text-lg font-bold text-white tracking-tight">OnboardAI</span>
+          <span className="text-xs px-2 py-0.5 bg-emerald-500/15 text-emerald-400 rounded-md font-medium border border-emerald-500/25">
+            beta
           </span>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           <select
             value={lang}
             onChange={e => setLang(e.target.value as 'ko' | 'en')}
-            className="text-xs px-2 py-1 rounded border border-slate-600 bg-slate-800 text-slate-300
+            className="text-xs px-2 py-1.5 rounded-md border border-slate-700 bg-slate-800 text-slate-400
                        focus:outline-none focus:ring-1 focus:ring-emerald-500 cursor-pointer"
           >
             <option value="ko">{t.lang.ko}</option>
@@ -211,26 +227,45 @@ export default function App() {
 
           {/* 로그인/유저 영역 */}
           {user ? (
-            <div className="flex items-center gap-2">
+            <div className="relative" ref={userMenuRef}>
+              {/* 유저 버튼 */}
               <button
-                onClick={() => setShowMyPage(true)}
-                className="text-xs text-slate-400 max-w-[140px] truncate hover:text-emerald-400 transition-colors"
-                title="마이페이지"
+                onClick={() => setShowUserMenu(v => !v)}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-md border border-slate-700
+                           text-slate-300 hover:bg-slate-800 hover:border-slate-600 transition-all text-xs"
               >
-                {user.email}
+                <span className="w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center text-white font-bold text-xs shrink-0">
+                  {(user.name ?? user.email)[0].toUpperCase()}
+                </span>
+                <span className="max-w-[120px] truncate">{user.name ?? user.email}</span>
+                <span className="text-slate-500 text-[10px]">{showUserMenu ? '▲' : '▼'}</span>
               </button>
-              <button
-                onClick={() => setShowMyPage(true)}
-                className="text-xs px-3 py-1 rounded-lg border border-slate-600 text-slate-300
-                           hover:bg-slate-800 transition-colors"
-              >
-                {t.myPage.title}
-              </button>
+
+              {/* 드롭다운 */}
+              {showUserMenu && (
+                <div className="absolute right-0 top-full mt-1.5 w-44 bg-slate-800 border border-slate-700 rounded-lg shadow-xl overflow-hidden">
+                  <div className="px-3 py-2 border-b border-slate-700">
+                    <p className="text-xs text-slate-400 truncate">{user.email}</p>
+                  </div>
+                  <button
+                    onClick={() => { setShowMyPage(true); setShowUserMenu(false) }}
+                    className="w-full text-left px-3 py-2.5 text-xs text-slate-300 hover:bg-slate-700 transition-colors flex items-center gap-2"
+                  >
+                    <span>⚙️</span> {t.myPage.title}
+                  </button>
+                  <button
+                    onClick={() => { handleLogout(); setShowUserMenu(false) }}
+                    className="w-full text-left px-3 py-2.5 text-xs text-red-400 hover:bg-slate-700 transition-colors flex items-center gap-2 border-t border-slate-700"
+                  >
+                    <span>→</span> {t.auth.logout}
+                  </button>
+                </div>
+              )}
             </div>
           ) : (
             <button
               onClick={() => setShowAuth(true)}
-              className="text-xs px-3 py-1.5 bg-emerald-500 text-white rounded-lg font-medium
+              className="text-xs px-3 py-1.5 bg-emerald-500 text-white rounded-md font-medium
                          hover:bg-emerald-600 transition-colors"
             >
               {t.auth.login}
@@ -240,12 +275,16 @@ export default function App() {
       </header>
 
       {/* Main */}
-      <main className="flex-1 flex flex-col items-center px-6 py-10 gap-6">
+      <main className="flex-1 flex flex-col items-center px-6 py-12 gap-6">
 
-        {/* Title */}
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-slate-900">{t.title}</h1>
-          <p className="text-slate-500 mt-2 text-sm">{t.subtitle}</p>
+        {/* Hero */}
+        <div className="text-center max-w-xl">
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-emerald-600 text-xs font-medium mb-4">
+            <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
+            AI-powered Code Onboarding
+          </div>
+          <h1 className="text-4xl font-bold text-slate-900 tracking-tight">{t.title}</h1>
+          <p className="text-slate-500 mt-3 text-sm leading-relaxed">{t.subtitle}</p>
         </div>
 
         {/* 탭 */}
@@ -397,6 +436,51 @@ export default function App() {
         )}
 
       </main>
+
+      {/* Footer */}
+      <footer className="border-t border-slate-200 bg-white/70 backdrop-blur mt-auto">
+        <div className="max-w-5xl mx-auto px-6 py-8">
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+
+            {/* 로고 + 설명 */}
+            <div className="flex flex-col gap-1.5">
+              <span className="font-bold text-slate-800 text-sm">OnboardAI</span>
+              <p className="text-xs text-slate-400 max-w-xs leading-relaxed">
+                코드베이스 온보딩을 자동화합니다.<br />
+                AST 분석 + AI로 신규 개발자의 적응을 돕습니다.
+              </p>
+            </div>
+
+            {/* 링크 */}
+            <div className="flex flex-col gap-2">
+              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Links</span>
+              <div className="flex flex-col gap-1.5">
+                <a href="https://onboardai.makelab.kr" className="text-xs text-slate-400 hover:text-emerald-600 transition-colors">
+                  onboardai.makelab.kr
+                </a>
+              </div>
+            </div>
+
+            {/* 상태 */}
+            <div className="flex flex-col gap-2">
+              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</span>
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+                <span className="text-xs text-slate-500">All systems operational</span>
+              </div>
+            </div>
+          </div>
+
+          {/* 하단 */}
+          <div className="mt-6 pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-2">
+            <span className="text-xs text-slate-400">© 2026 OnboardAI. All rights reserved.</span>
+            <div className="flex items-center gap-4">
+              <span className="text-xs text-slate-300">이용약관</span>
+              <span className="text-xs text-slate-300">개인정보처리방침</span>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   )
 }
