@@ -63,12 +63,13 @@ export default function App() {
   const handleCodeSubmit = useCallback(async (text: string, file: File | null) => {
     setCodeState({ phase: 'loading' })
     try {
-      const result = await analyzeCode(text, file, lang)
+      const token = getToken() ?? undefined
+      const result = await analyzeCode(text, file, lang, token)
       setCodeState({ phase: 'done', result })
     } catch (err) {
       setCodeState({ phase: 'error', message: String(err) })
     }
-  }, [])
+  }, [lang])
 
   const resetCode = () => setCodeState({ phase: 'idle' })
 
@@ -85,7 +86,7 @@ export default function App() {
     setShowAuth(false)
     meApi(token)
       .then(setUser)
-      .catch(() => setUser({ id: 0, email, created_at: '' }))
+      .catch(() => setUser({ id: 0, email, name: null, birth_date: null, created_at: '' }))
   }
 
   const handleLogout = () => {
@@ -110,7 +111,8 @@ export default function App() {
 
     const trySubmit = async (isRetry = false): Promise<void> => {
       try {
-        const jobId = await submitRepo(url)
+        const token = getToken() ?? undefined
+        const jobId = await submitRepo(url, token)
         setState({ phase: 'loading', jobId, status: 'pending' })
 
         const cancel = pollJob(jobId, (job: JobResponse) => {
@@ -173,6 +175,7 @@ export default function App() {
           user={user}
           onClose={() => setShowMyPage(false)}
           onLogout={handleLogout}
+          onUserUpdate={setUser}
         />
       )}
 

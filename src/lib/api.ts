@@ -45,15 +45,17 @@ export async function wakeUpServer(): Promise<void> {
   }
 }
 
-export async function submitRepo(repoUrl: string): Promise<string> {
+export async function submitRepo(repoUrl: string, token?: string): Promise<string> {
   // 90초 타임아웃 — Render.com cold start(~60초) 대응
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(), 90_000)
 
   try {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+    if (token) headers['Authorization'] = `Bearer ${token}`
     const res = await fetch(`${BASE_URL}/analyze`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify({ repo_url: repoUrl }),
       signal: controller.signal,
     })
@@ -95,14 +97,19 @@ export async function analyzeCode(
   text: string,
   file: File | null,
   lang: string = 'ko',
+  token?: string,
 ): Promise<CodeAnalysisResult> {
   const form = new FormData()
   if (text) form.append('text', text)
   if (file) form.append('file', file)
   form.append('lang', lang)
 
+  const headers: Record<string, string> = {}
+  if (token) headers['Authorization'] = `Bearer ${token}`
+
   const res = await fetch(`${BASE_URL}/code-analyze`, {
     method: 'POST',
+    headers,
     body: form,
   })
   if (!res.ok) {
