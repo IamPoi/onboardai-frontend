@@ -76,80 +76,80 @@ export default function CodeAnalysisForm({ onSubmit, loading }: Props) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="w-full max-w-2xl flex flex-col gap-4">
-      {/* 코드 텍스트 입력 */}
-      <div className="flex flex-col gap-1.5">
-        <label className="text-xs font-medium text-gray-600">
-          {t.codeAnalysis.textLabel}
-        </label>
-        <textarea
-          value={text}
-          onChange={e => setText(e.target.value)}
-          placeholder={t.codeAnalysis.textPlaceholder}
-          disabled={loading}
-          rows={10}
-          className="px-4 py-3 rounded-lg border border-gray-300 text-sm font-mono
-                     focus:outline-none focus:ring-2 focus:ring-blue-500
-                     disabled:opacity-50 disabled:cursor-not-allowed resize-y"
-        />
-      </div>
+    <form onSubmit={handleSubmit} className="w-full max-w-2xl flex flex-col gap-3">
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex flex-col gap-4">
+        {/* 코드 텍스트 입력 */}
+        <div className="flex flex-col gap-1.5">
+          <label className="text-xs font-medium text-slate-600">
+            {t.codeAnalysis.textLabel}
+          </label>
+          <textarea
+            value={text}
+            onChange={e => setText(e.target.value)}
+            placeholder={t.codeAnalysis.textPlaceholder}
+            disabled={loading}
+            rows={10}
+            className="px-4 py-3 rounded-lg border border-slate-200 bg-slate-50 text-sm font-mono
+                       focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent
+                       disabled:opacity-50 disabled:cursor-not-allowed resize-y"
+          />
+        </div>
 
-      {/* 파일 첨부 */}
-      <div className="flex flex-col gap-1.5">
-        <label className="text-xs font-medium text-gray-600">
-          {t.codeAnalysis.fileLabel}
-        </label>
-        <div
-          onDrop={handleDrop}
-          onDragOver={e => e.preventDefault()}
-          className="border-2 border-dashed border-gray-300 rounded-lg px-4 py-6
-                     text-center text-sm text-gray-400 hover:border-blue-400
-                     hover:text-blue-500 transition-colors cursor-pointer"
-          onClick={() => fileRef.current?.click()}
-        >
-          {file ? (
-            <div className="flex items-center justify-center gap-2 text-gray-700">
-              <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded">
-                {file.name}
-              </span>
-              <button
-                type="button"
-                onClick={e => { e.stopPropagation(); removeFile() }}
-                className="text-gray-400 hover:text-red-500 transition-colors text-base leading-none"
-              >
-                ×
-              </button>
-            </div>
-          ) : (
-            t.codeAnalysis.filePlaceholder
+        {/* 파일 첨부 */}
+        <div className="flex flex-col gap-1.5">
+          <label className="text-xs font-medium text-slate-600">
+            {t.codeAnalysis.fileLabel}
+          </label>
+          <div
+            onDrop={handleDrop}
+            onDragOver={e => e.preventDefault()}
+            className="bg-slate-50 border-2 border-dashed border-slate-200 rounded-lg px-4 py-6
+                       text-center text-sm text-slate-400 hover:border-emerald-400
+                       hover:text-emerald-500 transition-colors cursor-pointer"
+            onClick={() => fileRef.current?.click()}
+          >
+            {file ? (
+              <div className="flex items-center justify-center gap-2 text-slate-700">
+                <span className="font-mono text-xs bg-white border border-slate-200 px-2 py-1 rounded">
+                  {file.name}
+                </span>
+                <button
+                  type="button"
+                  onClick={e => { e.stopPropagation(); removeFile() }}
+                  className="text-slate-400 hover:text-red-500 transition-colors text-base leading-none"
+                >
+                  ×
+                </button>
+              </div>
+            ) : (
+              t.codeAnalysis.filePlaceholder
+            )}
+          </div>
+          <input
+            ref={fileRef}
+            type="file"
+            className="hidden"
+            onChange={handleFileChange}
+            disabled={loading}
+          />
+          {fileWarning && (
+            <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+              ⚠ {fileWarning}
+            </p>
           )}
         </div>
-        <input
-          ref={fileRef}
-          type="file"
-          className="hidden"
-          onChange={handleFileChange}
-          disabled={loading}
-        />
 
-        {/* 경고 메시지 */}
-        {fileWarning && (
-          <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-            ⚠ {fileWarning}
-          </p>
-        )}
+        <button
+          type="submit"
+          disabled={loading || (!text.trim() && !file)}
+          className="py-2.5 bg-emerald-500 text-white rounded-lg text-sm font-medium
+                     hover:bg-emerald-600 active:bg-emerald-700
+                     disabled:opacity-50 disabled:cursor-not-allowed
+                     transition-colors"
+        >
+          {loading ? t.codeAnalysis.analyzing : t.codeAnalysis.submit}
+        </button>
       </div>
-
-      <button
-        type="submit"
-        disabled={loading || (!text.trim() && !file)}
-        className="py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium
-                   hover:bg-blue-700 active:bg-blue-800
-                   disabled:opacity-50 disabled:cursor-not-allowed
-                   transition-colors"
-      >
-        {loading ? t.codeAnalysis.analyzing : t.codeAnalysis.submit}
-      </button>
     </form>
   )
 }

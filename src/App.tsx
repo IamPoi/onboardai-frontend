@@ -442,13 +442,10 @@ export default function App() {
         <div className="max-w-5xl mx-auto px-6 py-8">
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
 
-            {/* 로고 + 설명 */}
+            {/* 로고 */}
             <div className="flex flex-col gap-1.5">
               <span className="font-bold text-slate-800 text-sm">OnboardAI</span>
-              <p className="text-xs text-slate-400 max-w-xs leading-relaxed">
-                코드베이스 온보딩을 자동화합니다.<br />
-                AST 분석 + AI로 신규 개발자의 적응을 돕습니다.
-              </p>
+              <p className="text-xs text-slate-400">Made by <span className="font-medium text-slate-500">Makelab</span></p>
             </div>
 
             {/* 링크 */}
