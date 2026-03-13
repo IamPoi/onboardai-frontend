@@ -132,6 +132,26 @@ export const ko = {
       unknown: '오류가 발생했습니다. 다시 시도해주세요',
     },
   },
+  myPage: {
+    title: '마이페이지',
+    accountInfo: '계정 정보',
+    joinedAt: '가입일',
+    changePassword: '비밀번호 변경',
+    currentPassword: '현재 비밀번호',
+    newPassword: '새 비밀번호',
+    confirmPassword: '새 비밀번호 확인',
+    currentPasswordPlaceholder: '현재 비밀번호 입력',
+    newPasswordPlaceholder: '새 비밀번호 (8자 이상)',
+    confirmPasswordPlaceholder: '새 비밀번호 다시 입력',
+    saving: '변경 중...',
+    savePassword: '비밀번호 변경',
+    passwordChanged: '비밀번호가 변경되었습니다.',
+    passwordMismatch: '새 비밀번호가 일치하지 않습니다.',
+    errors: {
+      currentPasswordWrong: '현재 비밀번호가 올바르지 않습니다.',
+      unknown: '오류가 발생했습니다. 다시 시도해주세요.',
+    },
+  },
 }
 
 export type Translations = typeof ko

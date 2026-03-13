@@ -8,6 +8,8 @@ import CodeAnalysisForm from './components/CodeAnalysisForm'
 import CodeAnalysisResult from './components/CodeAnalysisResult'
 import OnboardingGuide from './components/OnboardingGuide'
 import PaymentModal from './components/PaymentModal'
+import MyPage from './components/MyPage'
+import AdBanner from './components/AdBanner'
 import { submitRepo, pollJob, analyzeCode, onboardingApi, type JobResponse, type GraphResult, type CodeAnalysisResult as CodeAnalysisData, type OnboardingResult } from './lib/api'
 import { getToken, meApi, clearToken, type UserInfo } from './lib/auth'
 import { useLang } from './contexts/LangContext'
@@ -38,6 +40,7 @@ export default function App() {
   const { t, lang, setLang } = useLang()
   const [user, setUser] = useState<UserInfo | null>(null)
   const [showAuth, setShowAuth] = useState(false)
+  const [showMyPage, setShowMyPage] = useState(false)
   const [activeTab, setActiveTab] = useState<TabKey>('project')
   const [showPaymentModal, setShowPaymentModal] = useState(false)
 
@@ -164,6 +167,15 @@ export default function App() {
         />
       )}
 
+      {/* 마이페이지 모달 */}
+      {showMyPage && user && (
+        <MyPage
+          user={user}
+          onClose={() => setShowMyPage(false)}
+          onLogout={handleLogout}
+        />
+      )}
+
       {/* 결제 유도 모달 */}
       {showPaymentModal && (
         <PaymentModal
@@ -197,13 +209,19 @@ export default function App() {
           {/* 로그인/유저 영역 */}
           {user ? (
             <div className="flex items-center gap-2">
-              <span className="text-xs text-slate-400 max-w-[140px] truncate">{user.email}</span>
               <button
-                onClick={handleLogout}
+                onClick={() => setShowMyPage(true)}
+                className="text-xs text-slate-400 max-w-[140px] truncate hover:text-emerald-400 transition-colors"
+                title="마이페이지"
+              >
+                {user.email}
+              </button>
+              <button
+                onClick={() => setShowMyPage(true)}
                 className="text-xs px-3 py-1 rounded-lg border border-slate-600 text-slate-300
                            hover:bg-slate-800 transition-colors"
               >
-                {t.auth.logout}
+                {t.myPage.title}
               </button>
             </div>
           ) : (
@@ -241,6 +259,11 @@ export default function App() {
         )}
         {activeTab === 'code' && codeState.phase === 'loading' && (
           <CodeAnalysisForm onSubmit={handleCodeSubmit} loading={true} />
+        )}
+
+        {/* 광고 — 코드 분석 결과 상단 */}
+        {activeTab === 'code' && (codeState.phase === 'done' || codeState.phase === 'error') && (
+          <AdBanner slot="1234567890" format="horizontal" className="w-full max-w-2xl h-[90px]" />
         )}
 
         {/* 코드 분석 결과 */}
@@ -360,11 +383,13 @@ export default function App() {
         )}
 
         {activeTab === 'project' && inlineOnboarding.phase === 'done' && (
-          <div className="w-full max-w-3xl">
+          <div className="w-full max-w-3xl flex flex-col gap-4">
             <OnboardingGuide
               lang={lang}
               preloadedResult={inlineOnboarding.result}
             />
+            {/* 광고 — 온보딩 가이드 하단 */}
+            <AdBanner slot="0987654321" format="rectangle" className="w-full h-[250px]" />
           </div>
         )}
 
