@@ -10,9 +10,12 @@ import OnboardingGuide from './components/OnboardingGuide'
 import PaymentModal from './components/PaymentModal'
 import MyPage from './components/MyPage'
 import AdBanner from './components/AdBanner'
+import IssuePanel from './components/IssuePanel'
 import { submitRepo, pollJob, analyzeCode, onboardingApi, type JobResponse, type GraphResult, type CodeAnalysisResult as CodeAnalysisData, type OnboardingResult } from './lib/api'
 import { getToken, meApi, clearToken, type UserInfo } from './lib/auth'
 import { useLang } from './contexts/LangContext'
+
+type ResultSection = 'graph' | 'issues' | 'guide'
 
 type AppState =
   | { phase: 'idle' }
@@ -44,6 +47,7 @@ export default function App() {
   const [showUserMenu, setShowUserMenu] = useState(false)
   const [activeTab, setActiveTab] = useState<TabKey>('project')
   const [showPaymentModal, setShowPaymentModal] = useState(false)
+  const [activeSection, setActiveSection] = useState<ResultSection>('graph')
   const userMenuRef = useRef<HTMLDivElement>(null)
 
   // 유저 메뉴 외부 클릭 시 닫기
@@ -157,7 +161,11 @@ export default function App() {
     await trySubmit()
   }, [t])
 
-  const reset = () => { setState({ phase: 'idle' }); setInlineOnboarding({ phase: 'idle' }) }
+  const reset = () => {
+    setState({ phase: 'idle' })
+    setInlineOnboarding({ phase: 'idle' })
+    setActiveSection('graph')
+  }
 
   const loading = state.phase === 'loading'
 
@@ -275,10 +283,10 @@ export default function App() {
       </header>
 
       {/* Main */}
-      <main className="flex-1 flex flex-col items-center px-6 py-12 gap-6">
+      <main className={`flex-1 flex flex-col px-6 py-12 gap-6 ${activeTab === 'project' && state.phase === 'done' ? 'items-stretch max-w-none' : 'items-center'}`}>
 
         {/* Hero */}
-        <div className="text-center max-w-xl">
+        <div className="text-center max-w-xl self-center">
           <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-emerald-600 text-xs font-medium mb-4">
             <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
             AI-powered Code Onboarding
@@ -288,11 +296,15 @@ export default function App() {
         </div>
 
         {/* 탭 */}
-        <TabBar active={activeTab} onChange={setActiveTab} />
+        <div className="self-center">
+          <TabBar active={activeTab} onChange={setActiveTab} />
+        </div>
 
         {/* 프로젝트 분석 탭 */}
-        {activeTab === 'project' && (
-          <RepoForm onSubmit={handleSubmit} loading={loading} />
+        {activeTab === 'project' && state.phase !== 'done' && (
+          <div className="self-center w-full max-w-xl">
+            <RepoForm onSubmit={handleSubmit} loading={loading} />
+          </div>
         )}
 
         {/* 코드 분석 탭 */}
@@ -323,115 +335,164 @@ export default function App() {
 
         {/* 프로젝트 분석 Status */}
         {activeTab === 'project' && state.phase === 'loading' && (
-          <StatusBanner status={state.status} />
+          <div className="self-center w-full max-w-xl"><StatusBanner status={state.status} /></div>
         )}
         {activeTab === 'project' && state.phase === 'error' && (
-          <StatusBanner status="failed" error={state.message} />
+          <div className="self-center w-full max-w-xl"><StatusBanner status="failed" error={state.message} /></div>
         )}
         {activeTab === 'project' && state.phase === 'done' && (
-          <StatusBanner status="complete" stats={state.stats} />
+          <div className="self-center w-full max-w-xl"><StatusBanner status="complete" stats={state.stats} /></div>
         )}
 
         {/* Reset button */}
         {activeTab === 'project' && (state.phase === 'done' || state.phase === 'error') && (
           <button
             onClick={reset}
-            className="text-sm text-gray-500 underline hover:text-gray-700"
+            className="self-center text-sm text-gray-500 underline hover:text-gray-700"
           >
             {t.app.reset}
           </button>
         )}
 
-        {/* Framework badges + Legend */}
+        {/* 프로젝트 분석 결과 — 사이드바 레이아웃 */}
         {activeTab === 'project' && state.phase === 'done' && (
-          <div className="flex flex-col items-center gap-3">
-            {/* Detected frameworks */}
-            {frameworks.length > 0 && (
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-gray-400">{t.frameworks.detected}:</span>
-                {frameworks.map(fw => {
-                  const style = FW_STYLE[fw] ?? { bg: '#f3f4f6', text: '#374151', border: '#9ca3af' }
-                  return (
-                    <span
-                      key={fw}
-                      className="text-xs px-2.5 py-1 rounded-full font-semibold"
-                      style={{ background: style.bg, color: style.text, border: `1px solid ${style.border}` }}
-                    >
-                      {t.frameworks[fw as keyof typeof t.frameworks] ?? fw}
-                    </span>
-                  )
-                })}
-              </div>
-            )}
+          <div className="w-full flex flex-col lg:flex-row gap-4">
 
-            {/* Layer legend */}
-            <div className="flex gap-3 text-xs">
-              {LEGEND_LAYERS.map(({ key, bg, border, color }) => (
-                <span
-                  key={key}
-                  className="px-2.5 py-1 rounded-md font-medium"
-                  style={{ background: bg, border: `1px solid ${border}`, color }}
+            {/* 왼쪽 사이드바 */}
+            <aside className="lg:w-52 shrink-0 flex lg:flex-col flex-row gap-2 lg:gap-1">
+              {/* 감지된 프레임워크 */}
+              {frameworks.length > 0 && (
+                <div className="hidden lg:flex flex-col gap-1.5 px-3 py-2.5 mb-2 bg-white rounded-xl border border-slate-200">
+                  <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Framework</span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {frameworks.map(fw => {
+                      const style = FW_STYLE[fw] ?? { bg: '#f3f4f6', text: '#374151', border: '#9ca3af' }
+                      return (
+                        <span
+                          key={fw}
+                          className="text-xs px-2 py-0.5 rounded-full font-semibold"
+                          style={{ background: style.bg, color: style.text, border: `1px solid ${style.border}` }}
+                        >
+                          {t.frameworks[fw as keyof typeof t.frameworks] ?? fw}
+                        </span>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* 네비게이션 버튼 */}
+              {(
+                [
+                  { key: 'graph' as const,  icon: '🗺️', label: '아키텍처 그래프' },
+                  { key: 'issues' as const, icon: '🔍', label: '코드 이슈', badge: state.graph.issues?.length },
+                  { key: 'guide' as const,  icon: '🚀', label: 'AI 온보딩 가이드' },
+                ] as const
+              ).map(item => (
+                <button
+                  key={item.key}
+                  onClick={() => setActiveSection(item.key)}
+                  className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-left
+                    ${activeSection === item.key
+                      ? 'bg-emerald-500 text-white shadow-sm'
+                      : 'bg-white text-slate-600 border border-slate-200 hover:border-emerald-300 hover:text-emerald-700'
+                    }`}
                 >
-                  {getLayerLabel(key)}
-                </span>
+                  <span className="text-base shrink-0">{item.icon}</span>
+                  <span className="truncate">{item.label}</span>
+                  {'badge' in item && item.badge !== undefined && item.badge > 0 && (
+                    <span className={`ml-auto text-xs px-1.5 py-0.5 rounded-full font-semibold shrink-0
+                      ${activeSection === item.key ? 'bg-white/20 text-white' : 'bg-red-100 text-red-600'}`}>
+                      {item.badge}
+                    </span>
+                  )}
+                </button>
               ))}
+
+              {/* 레이어 범례 — 사이드바 하단 (lg 이상) */}
+              <div className="hidden lg:flex flex-col gap-1.5 px-3 py-2.5 mt-auto bg-white rounded-xl border border-slate-200">
+                <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Legend</span>
+                {LEGEND_LAYERS.map(({ key, bg, border, color }) => (
+                  <span
+                    key={key}
+                    className="text-xs px-2 py-0.5 rounded-md font-medium w-fit"
+                    style={{ background: bg, border: `1px solid ${border}`, color }}
+                  >
+                    {getLayerLabel(key)}
+                  </span>
+                ))}
+              </div>
+            </aside>
+
+            {/* 오른쪽 컨텐츠 */}
+            <div className="flex-1 min-w-0">
+
+              {/* 그래프 섹션 */}
+              {activeSection === 'graph' && (
+                <div className="bg-white rounded-xl border border-slate-200 overflow-hidden" style={{ height: '75vh', minHeight: '500px' }}>
+                  <FlowGraph graph={state.graph} />
+                </div>
+              )}
+
+              {/* 코드 이슈 섹션 */}
+              {activeSection === 'issues' && (
+                <IssuePanel
+                  issues={state.graph.issues ?? []}
+                  isPaid={false}
+                  onUpgrade={() => setShowPaymentModal(true)}
+                />
+              )}
+
+              {/* AI 가이드 섹션 */}
+              {activeSection === 'guide' && (
+                <div className="flex flex-col gap-4">
+                  {inlineOnboarding.phase === 'idle' && (
+                    <div className="bg-white rounded-xl border border-slate-200 p-8 flex flex-col items-center gap-4">
+                      <span className="text-4xl">🚀</span>
+                      <div className="text-center">
+                        <p className="text-slate-700 font-semibold mb-1">AI 온보딩 가이드</p>
+                        <p className="text-xs text-slate-400">신규 개발자를 위한 AI 온보딩 가이드를 자동으로 생성합니다</p>
+                      </div>
+                      <button
+                        onClick={() => setShowPaymentModal(true)}
+                        className="px-8 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-white
+                                   font-semibold rounded-xl shadow-sm hover:shadow-md hover:scale-105
+                                   transition-all text-sm flex items-center gap-2"
+                      >
+                        <span>온보딩 가이드 생성하기</span>
+                        <span className="text-xs bg-white/20 px-2 py-0.5 rounded-full">Premium</span>
+                      </button>
+                    </div>
+                  )}
+
+                  {inlineOnboarding.phase === 'loading' && (
+                    <div className="bg-white rounded-xl border border-slate-200 p-12 flex flex-col items-center gap-4">
+                      <div className="w-10 h-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+                      <p className="text-sm text-slate-500">온보딩 가이드 생성 중... (최대 60초 소요)</p>
+                    </div>
+                  )}
+
+                  {inlineOnboarding.phase === 'error' && (
+                    <div className="flex flex-col items-center gap-3">
+                      <div className="w-full p-4 bg-red-50 text-red-600 rounded-xl text-sm border border-red-100">
+                        {inlineOnboarding.message}
+                      </div>
+                      <button onClick={handleOnboardingCTA} className="text-sm text-emerald-600 underline hover:text-emerald-700">
+                        다시 시도
+                      </button>
+                    </div>
+                  )}
+
+                  {inlineOnboarding.phase === 'done' && (
+                    <>
+                      <OnboardingGuide lang={lang} preloadedResult={inlineOnboarding.result} />
+                      <AdBanner slot="7183168015" format="rectangle" className="w-full h-[250px]" />
+                    </>
+                  )}
+                </div>
+              )}
+
             </div>
-          </div>
-        )}
-
-        {/* Graph */}
-        {activeTab === 'project' && state.phase === 'done' && (
-          <div style={{ width: '100%', height: '80vh', minHeight: '600px' }}>
-            <FlowGraph graph={state.graph} />
-          </div>
-        )}
-
-        {/* 온보딩 가이드 버튼 — 그래프 아래 */}
-        {activeTab === 'project' && state.phase === 'done' && inlineOnboarding.phase === 'idle' && (
-          <div className="w-full max-w-2xl flex flex-col items-center gap-2 py-4">
-            <button
-              onClick={() => setShowPaymentModal(true)}
-              className="px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-500 text-white
-                         font-semibold rounded-2xl shadow-lg hover:shadow-xl hover:scale-105
-                         transition-all text-sm flex items-center gap-3"
-            >
-              <span className="text-lg">🚀</span>
-              <span>온보딩 가이드 생성하기</span>
-              <span className="text-xs bg-white/20 px-2.5 py-1 rounded-full font-medium">Premium</span>
-            </button>
-            <p className="text-xs text-slate-400">신규 개발자를 위한 AI 온보딩 가이드를 자동으로 생성합니다</p>
-          </div>
-        )}
-
-        {activeTab === 'project' && inlineOnboarding.phase === 'loading' && (
-          <div className="w-full max-w-2xl flex flex-col items-center gap-4 py-8">
-            <div className="w-10 h-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
-            <p className="text-sm text-slate-500">온보딩 가이드 생성 중... (최대 60초 소요)</p>
-          </div>
-        )}
-
-        {activeTab === 'project' && inlineOnboarding.phase === 'error' && (
-          <div className="w-full max-w-2xl flex flex-col items-center gap-3 py-4">
-            <div className="w-full p-4 bg-red-50 text-red-600 rounded-xl text-sm border border-red-100">
-              {inlineOnboarding.message}
-            </div>
-            <button
-              onClick={handleOnboardingCTA}
-              className="text-sm text-emerald-600 underline hover:text-emerald-700"
-            >
-              다시 시도
-            </button>
-          </div>
-        )}
-
-        {activeTab === 'project' && inlineOnboarding.phase === 'done' && (
-          <div className="w-full max-w-3xl flex flex-col gap-4">
-            <OnboardingGuide
-              lang={lang}
-              preloadedResult={inlineOnboarding.result}
-            />
-            {/* 광고 — 온보딩 가이드 하단 */}
-            <AdBanner slot="7183168015" format="rectangle" className="w-full h-[250px]" />
           </div>
         )}
 

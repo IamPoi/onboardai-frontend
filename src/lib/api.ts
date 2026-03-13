@@ -15,12 +15,22 @@ export interface GraphEdge {
   label: string
 }
 
+export interface CodeIssue {
+  severity: 'BLOCKER' | 'CRITICAL' | 'MAJOR' | 'MINOR' | 'INFO'
+  rule_id: string
+  message: string
+  file: string
+  line: number
+  suggestion: string
+}
+
 export interface GraphResult {
   nodes: GraphNode[]
   edges: GraphEdge[]
   stats: { class_count: number; edge_count: number }
   frameworks: string[]
   mermaid_syntax?: string
+  issues?: CodeIssue[]
 }
 
 export interface OnboardingResult {
