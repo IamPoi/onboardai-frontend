@@ -114,7 +114,7 @@ function StripeCheckoutForm({
 }
 
 // ── 풍부한 온보딩 가이드 결과 ───────────────────────────────────────────────────
-function OnboardingResult({ result, repoUrl, onReset }: {
+export function OnboardingResult({ result, repoUrl, onReset }: {
   result: OnboardingResult
   repoUrl: string
   onReset: () => void

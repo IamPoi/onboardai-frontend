@@ -4,8 +4,8 @@ import {
   getToken, changePasswordApi, updateProfileApi, getHistoryApi, getHistoryDetailApi,
   type UserInfo, type HistoryItem, type HistoryDetail,
 } from '../lib/auth'
-import { downloadPdf } from '../lib/pdf'
 import type { OnboardingResult } from '../lib/api'
+import { OnboardingResult as OnboardingResultView } from './OnboardingGuide'
 
 type MyPageTab = 'profile' | 'history'
 
@@ -421,53 +421,11 @@ function ProjectDetail({ result }: { result: Record<string, unknown> }) {
 
 function OnboardingDetail({ result, repoName }: { result: Record<string, unknown>; repoName: string }) {
   const onboarding = result as unknown as OnboardingResult
-  const modules = onboarding.core_modules ?? onboarding.top_classes ?? []
-  const checklist = onboarding.onboarding_checklist ?? (onboarding.onboarding_tip ? onboarding.onboarding_tip.split('\n').filter(Boolean) : [])
-
   return (
-    <div className="flex flex-col gap-3">
-      <div className="flex items-center justify-between">
-        <p className="font-semibold text-xs" style={{ color: 'var(--purple-light)' }}>AI Onboarding Guide</p>
-        <button
-          onClick={() => downloadPdf(repoName, { nodes: [], edges: [], stats: { class_count: 0, edge_count: 0 }, frameworks: [] }, onboarding)}
-          className="text-xs px-2.5 py-1 rounded-lg font-medium transition-all hover:opacity-80"
-          style={{ background: 'rgba(52,211,153,0.15)', color: 'var(--mint)', border: '1px solid rgba(52,211,153,0.3)' }}
-        >
-          📄 Download PDF
-        </button>
-      </div>
-      {onboarding.project_overview && (
-        <div>
-          <span className="font-semibold" style={{ color: 'var(--text)' }}>Project Overview:</span>
-          <p className="mt-0.5 leading-relaxed">{onboarding.project_overview.summary}</p>
-        </div>
-      )}
-      <div>
-        <span className="font-semibold" style={{ color: 'var(--text)' }}>Architecture:</span>
-        <p className="mt-0.5 leading-relaxed">{onboarding.architecture_summary}</p>
-      </div>
-      {modules.length > 0 && (
-        <div>
-          <span className="font-semibold" style={{ color: 'var(--text)' }}>Core Modules ({modules.length}):</span>
-          <ul className="mt-1 space-y-0.5">
-            {modules.slice(0, 4).map((m, i) => (
-              <li key={i} className="flex items-center gap-1.5">
-                <span className="font-mono" style={{ color: 'var(--purple-light)' }}>{m.name}</span>
-                <span style={{ color: 'var(--text-muted)' }}>— {m.role.slice(0, 60)}{m.role.length > 60 ? '...' : ''}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-      {checklist.length > 0 && (
-        <div>
-          <span className="font-semibold" style={{ color: 'var(--text)' }}>Checklist ({checklist.length}):</span>
-          <ul className="mt-1 space-y-0.5 list-disc list-inside">
-            {checklist.slice(0, 3).map((item, i) => <li key={i}>{item}</li>)}
-            {checklist.length > 3 && <li style={{ color: 'var(--text-muted)' }}>+{checklist.length - 3} more...</li>}
-          </ul>
-        </div>
-      )}
-    </div>
+    <OnboardingResultView
+      result={onboarding}
+      repoUrl={repoName}
+      onReset={() => {}}
+    />
   )
 }
