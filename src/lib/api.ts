@@ -22,6 +22,8 @@ export interface CodeIssue {
   file: string
   line: number
   suggestion: string
+  cwe?: string
+  owasp?: string
 }
 
 export interface GraphResult {

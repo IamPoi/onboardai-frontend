@@ -113,6 +113,32 @@ export default function IssuePanel({ issues, isPaid, onUpgrade }: Props) {
                       {cfg.label}
                     </span>
                     <span className="text-xs text-slate-400 font-mono">{issue.rule_id}</span>
+                    {issue.cwe && (
+                      <a
+                        href={`https://cwe.mitre.org/data/definitions/${issue.cwe.replace('CWE-', '')}.html`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={e => e.stopPropagation()}
+                        className="text-xs px-1.5 py-0.5 rounded border font-mono font-medium
+                                   bg-violet-50 text-violet-700 border-violet-200
+                                   hover:bg-violet-100 transition-colors"
+                      >
+                        {issue.cwe} ↗
+                      </a>
+                    )}
+                    {issue.owasp && (
+                      <a
+                        href="https://owasp.org/Top10/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={e => e.stopPropagation()}
+                        className="text-xs px-1.5 py-0.5 rounded border font-medium
+                                   bg-orange-50 text-orange-700 border-orange-200
+                                   hover:bg-orange-100 transition-colors"
+                      >
+                        OWASP {issue.owasp} ↗
+                      </a>
+                    )}
                   </div>
                   <p className="text-sm text-slate-700 mt-1 font-medium">{issue.message}</p>
                   <p className="text-xs text-slate-400 mt-0.5 font-mono truncate">
