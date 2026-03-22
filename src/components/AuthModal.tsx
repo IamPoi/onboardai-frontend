@@ -31,7 +31,6 @@ export default function AuthModal({ onClose, onSuccess }: Props) {
     return () => window.removeEventListener('keydown', handleKey)
   }, [onClose])
 
-  // 재발송 쿨다운 타이머
   useEffect(() => {
     if (resendCooldown <= 0) return
     const timer = setTimeout(() => setResendCooldown(v => v - 1), 1000)
@@ -60,7 +59,6 @@ export default function AuthModal({ onClose, onSuccess }: Props) {
       } else {
         const res = await registerApi(email.trim(), password, name.trim(), birthDate || undefined)
         if (!res.needs_verification && res.access_token) {
-          // 이메일 인증 미설정 환경 — 바로 로그인
           saveToken(res.access_token)
           onSuccess(res.access_token, email.trim())
         } else {
@@ -76,7 +74,6 @@ export default function AuthModal({ onClose, onSuccess }: Props) {
       } else if (msg.includes('올바르지 않습니다') || msg.includes('incorrect') || msg.includes('401')) {
         setError(t.auth.errors.invalidCredentials)
       } else if (msg.includes('인증이 필요')) {
-        // 미인증 유저가 로그인 시도 — OTP 스텝으로 이동
         setPendingEmail(email.trim())
         setStep('otp')
         setResendCooldown(60)
@@ -122,19 +119,31 @@ export default function AuthModal({ onClose, onSuccess }: Props) {
     setEmail(''); setPassword(''); setConfirmPassword(''); setName(''); setBirthDate(''); setOtp('')
   }
 
+  const inputClass = "aurora-input w-full px-3 py-2.5 rounded-xl text-sm disabled:opacity-50"
+
   // ── OTP 인증 스텝 ──────────────────────────────────────────────────────────
   if (step === 'otp') {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
-        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 overflow-hidden" onClick={e => e.stopPropagation()}>
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center"
+        style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)' }}
+        onClick={onClose}
+      >
+        <div
+          className="glass-card rounded-2xl w-full max-w-sm mx-4 overflow-hidden"
+          onClick={e => e.stopPropagation()}
+        >
           <div className="p-6">
             <div className="text-center mb-6">
-              <div className="w-14 h-14 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-3">
+              <div
+                className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-3"
+                style={{ background: 'rgba(52,211,153,0.15)', border: '1px solid rgba(52,211,153,0.3)' }}
+              >
                 <span className="text-2xl">📧</span>
               </div>
-              <h2 className="text-lg font-bold text-slate-900">이메일 인증</h2>
-              <p className="text-sm text-slate-500 mt-1">
-                <span className="font-medium text-slate-700">{pendingEmail}</span>으로<br />
+              <h2 className="text-lg font-bold" style={{ color: 'var(--text)' }}>이메일 인증</h2>
+              <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>
+                <span className="font-medium" style={{ color: 'var(--text)' }}>{pendingEmail}</span>으로<br />
                 발송된 6자리 코드를 입력해주세요.
               </p>
             </div>
@@ -149,13 +158,14 @@ export default function AuthModal({ onClose, onSuccess }: Props) {
                 value={otp}
                 onChange={e => { setOtp(e.target.value.replace(/\D/g, '')); setError('') }}
                 disabled={loading}
-                className="px-4 py-4 rounded-xl border border-gray-200 text-center text-2xl font-bold
-                           tracking-[0.5em] font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500
-                           focus:border-transparent disabled:opacity-50 bg-gray-50"
+                className="aurora-input w-full px-4 py-4 rounded-xl text-center text-2xl font-bold tracking-[0.5em] font-mono disabled:opacity-50"
               />
 
               {error && (
-                <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-xl px-3 py-2">
+                <p
+                  className="text-xs px-3 py-2 rounded-xl"
+                  style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171' }}
+                >
                   {error}
                 </p>
               )}
@@ -163,19 +173,19 @@ export default function AuthModal({ onClose, onSuccess }: Props) {
               <button
                 type="submit"
                 disabled={loading || otp.length !== 6}
-                className="py-3 bg-emerald-500 text-white rounded-xl text-sm font-semibold
-                           hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="aurora-btn py-3 rounded-xl text-sm font-semibold w-full"
               >
                 {loading ? '인증 중...' : '인증 완료'}
               </button>
             </form>
 
             <div className="flex items-center justify-center gap-1 mt-4">
-              <span className="text-xs text-slate-400">코드를 받지 못했나요?</span>
+              <span className="text-xs" style={{ color: 'var(--text-muted)' }}>코드를 받지 못했나요?</span>
               <button
                 onClick={handleResend}
                 disabled={resendCooldown > 0}
-                className="text-xs text-emerald-600 font-medium hover:underline disabled:text-slate-300 disabled:no-underline"
+                className="text-xs font-medium hover:underline"
+                style={{ color: resendCooldown > 0 ? 'var(--text-muted)' : 'var(--mint)' }}
               >
                 {resendCooldown > 0 ? `재발송 (${resendCooldown}s)` : '재발송'}
               </button>
@@ -188,21 +198,34 @@ export default function AuthModal({ onClose, onSuccess }: Props) {
 
   // ── 로그인/회원가입 폼 ──────────────────────────────────────────────────────
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 overflow-hidden" onClick={e => e.stopPropagation()}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center"
+      style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)' }}
+      onClick={onClose}
+    >
+      <div
+        className="glass-card rounded-2xl w-full max-w-sm mx-4 overflow-hidden"
+        onClick={e => e.stopPropagation()}
+      >
         {/* 탭 헤더 */}
-        <div className="flex border-b border-gray-200">
+        <div className="flex" style={{ borderBottom: '1px solid var(--border)' }}>
           {(['login', 'register'] as Tab[]).map(tabKey => (
             <button
               key={tabKey}
               onClick={() => switchTab(tabKey)}
-              className={`flex-1 py-4 text-sm font-semibold transition-colors ${
-                tab === tabKey
-                  ? 'text-emerald-600 border-b-2 border-emerald-600 bg-emerald-50/50'
-                  : 'text-gray-400 hover:text-gray-600'
-              }`}
+              className="flex-1 py-4 text-sm font-semibold transition-colors relative"
+              style={{
+                color: tab === tabKey ? 'var(--mint)' : 'var(--text-muted)',
+                background: tab === tabKey ? 'rgba(52,211,153,0.05)' : 'transparent',
+              }}
             >
               {tabKey === 'login' ? t.auth.login : t.auth.register}
+              {tab === tabKey && (
+                <span
+                  className="absolute bottom-0 left-0 right-0 h-0.5"
+                  style={{ background: 'var(--mint)' }}
+                />
+              )}
             </button>
           ))}
         </div>
@@ -213,22 +236,24 @@ export default function AuthModal({ onClose, onSuccess }: Props) {
 
             {tab === 'register' && (
               <div className="flex flex-col gap-1">
-                <label className="text-xs font-medium text-gray-600">{t.auth.name} <span className="text-red-400">*</span></label>
+                <label className="text-xs font-medium" style={{ color: 'var(--text-muted)' }}>
+                  {t.auth.name} <span style={{ color: '#f87171' }}>*</span>
+                </label>
                 <input
                   type="text"
                   placeholder={t.auth.namePlaceholder}
                   value={name}
                   onChange={e => setName(e.target.value)}
                   disabled={loading}
-                  className="px-3 py-2.5 rounded-xl border border-gray-200 text-sm
-                             focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent
-                             disabled:opacity-50 bg-gray-50"
+                  className={inputClass}
                 />
               </div>
             )}
 
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-medium text-gray-600">{t.auth.email} <span className="text-red-400">*</span></label>
+              <label className="text-xs font-medium" style={{ color: 'var(--text-muted)' }}>
+                {t.auth.email} <span style={{ color: '#f87171' }}>*</span>
+              </label>
               <input
                 type="email"
                 autoComplete="email"
@@ -236,29 +261,28 @@ export default function AuthModal({ onClose, onSuccess }: Props) {
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 disabled={loading}
-                className="px-3 py-2.5 rounded-xl border border-gray-200 text-sm
-                           focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent
-                           disabled:opacity-50 bg-gray-50"
+                className={inputClass}
               />
             </div>
 
             {tab === 'register' && (
               <div className="flex flex-col gap-1">
-                <label className="text-xs font-medium text-gray-600">{t.auth.birthDate}</label>
+                <label className="text-xs font-medium" style={{ color: 'var(--text-muted)' }}>{t.auth.birthDate}</label>
                 <input
                   type="date"
                   value={birthDate}
                   onChange={e => setBirthDate(e.target.value)}
                   disabled={loading}
-                  className="px-3 py-2.5 rounded-xl border border-gray-200 text-sm
-                             focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent
-                             disabled:opacity-50 bg-gray-50"
+                  className={inputClass}
+                  style={{ colorScheme: 'dark' }}
                 />
               </div>
             )}
 
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-medium text-gray-600">{t.auth.password} <span className="text-red-400">*</span></label>
+              <label className="text-xs font-medium" style={{ color: 'var(--text-muted)' }}>
+                {t.auth.password} <span style={{ color: '#f87171' }}>*</span>
+              </label>
               <input
                 type="password"
                 autoComplete={tab === 'login' ? 'current-password' : 'new-password'}
@@ -266,15 +290,15 @@ export default function AuthModal({ onClose, onSuccess }: Props) {
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 disabled={loading}
-                className="px-3 py-2.5 rounded-xl border border-gray-200 text-sm
-                           focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent
-                           disabled:opacity-50 bg-gray-50"
+                className={inputClass}
               />
             </div>
 
             {tab === 'register' && (
               <div className="flex flex-col gap-1">
-                <label className="text-xs font-medium text-gray-600">{t.auth.confirmPassword} <span className="text-red-400">*</span></label>
+                <label className="text-xs font-medium" style={{ color: 'var(--text-muted)' }}>
+                  {t.auth.confirmPassword} <span style={{ color: '#f87171' }}>*</span>
+                </label>
                 <input
                   type="password"
                   autoComplete="new-password"
@@ -282,21 +306,24 @@ export default function AuthModal({ onClose, onSuccess }: Props) {
                   value={confirmPassword}
                   onChange={e => setConfirmPassword(e.target.value)}
                   disabled={loading}
-                  className={`px-3 py-2.5 rounded-xl border text-sm
-                             focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent
-                             disabled:opacity-50 bg-gray-50 ${
-                               confirmPassword && confirmPassword !== password
-                                 ? 'border-red-300' : 'border-gray-200'
-                             }`}
+                  className="aurora-input w-full px-3 py-2.5 rounded-xl text-sm disabled:opacity-50"
+                  style={
+                    confirmPassword && confirmPassword !== password
+                      ? { borderColor: 'rgba(239,68,68,0.5)' }
+                      : {}
+                  }
                 />
                 {confirmPassword && confirmPassword !== password && (
-                  <p className="text-xs text-red-500">{t.auth.errors.passwordMismatch}</p>
+                  <p className="text-xs" style={{ color: '#f87171' }}>{t.auth.errors.passwordMismatch}</p>
                 )}
               </div>
             )}
 
             {error && (
-              <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-xl px-3 py-2">
+              <p
+                className="text-xs px-3 py-2 rounded-xl"
+                style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171' }}
+              >
                 {error}
               </p>
             )}
@@ -304,9 +331,7 @@ export default function AuthModal({ onClose, onSuccess }: Props) {
             <button
               type="submit"
               disabled={loading}
-              className="mt-1 py-3 bg-emerald-500 text-white rounded-xl text-sm font-semibold
-                         hover:bg-emerald-600 active:bg-emerald-700
-                         disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="aurora-btn mt-1 py-3 rounded-xl text-sm font-semibold w-full"
             >
               {loading
                 ? (tab === 'login' ? t.auth.loggingIn : t.auth.registering)

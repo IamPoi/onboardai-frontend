@@ -1,8 +1,99 @@
 @import "tailwindcss";
 @import "@xyflow/react/dist/style.css";
 
-body {
+:root {
+  --bg: #050510;
+  --bg2: #0d0d1f;
+  --surface: rgba(255, 255, 255, 0.04);
+  --surface-hover: rgba(255, 255, 255, 0.07);
+  --border: rgba(255, 255, 255, 0.08);
+  --border-bright: rgba(255, 255, 255, 0.15);
+  --text: #e8e8f0;
+  --text-muted: rgba(255, 255, 255, 0.35);
+  --purple: #7c3aed;
+  --purple-light: #a78bfa;
+  --mint: #34d399;
+  --mint-glow: rgba(52, 211, 153, 0.15);
+  --purple-glow: rgba(124, 58, 237, 0.2);
+  --pink: #f472b6;
+}
+
+html, body {
   margin: 0;
-  font-family: system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
+
+/* Grid overlay */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Aurora gradient button */
+.aurora-btn {
+  background: linear-gradient(135deg, #7c3aed, #34d399);
+  color: white;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 20px rgba(124, 58, 237, 0.3);
+}
+
+.aurora-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 30px rgba(124, 58, 237, 0.5);
+}
+
+.aurora-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Glass card */
+.glass-card {
+  background: var(--surface);
+  border: 1px solid var(--border-bright);
+  backdrop-filter: blur(20px);
+}
+
+/* Aurora input */
+.aurora-input {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--border-bright);
+  color: var(--text);
+  font-family: 'JetBrains Mono', monospace;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.aurora-input:focus {
+  border-color: var(--purple);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
+}
+
+.aurora-input::placeholder {
+  color: var(--text-muted);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+/* React Flow dark override */
+.react-flow__background { background: transparent !important; }
+.react-flow__pane { background: transparent !important; }

@@ -24,19 +24,17 @@ type AppState =
   | { phase: 'done'; graph: GraphResult; stats: { class_count: number; edge_count: number }; repoUrl: string }
   | { phase: 'error'; message: string }
 
-// Framework badge colors
-const FW_STYLE: Record<string, { bg: string; text: string; border: string }> = {
-  spring:  { bg: '#dcfce7', text: '#15803d', border: '#22c55e' },
-  nestjs:  { bg: '#fce7f3', text: '#9d174d', border: '#ec4899' },
-  django:  { bg: '#d1fae5', text: '#065f46', border: '#10b981' },
-  fastapi: { bg: '#dbeafe', text: '#1e40af', border: '#3b82f6' },
+const FW_COLORS: Record<string, { bg: string; text: string; border: string }> = {
+  spring:  { bg: 'rgba(52,211,153,0.1)',  text: '#34d399', border: 'rgba(52,211,153,0.3)' },
+  nestjs:  { bg: 'rgba(244,114,182,0.1)', text: '#f472b6', border: 'rgba(244,114,182,0.3)' },
+  django:  { bg: 'rgba(52,211,153,0.1)',  text: '#6ee7b7', border: 'rgba(52,211,153,0.25)' },
+  fastapi: { bg: 'rgba(96,165,250,0.1)',  text: '#60a5fa', border: 'rgba(96,165,250,0.3)' },
 }
 
-// Layer legend colors (always the same 3)
 const LEGEND_LAYERS = [
-  { key: 'controller' as const, bg: '#dbeafe', border: '#3b82f6', color: '#1e40af' },
-  { key: 'service'    as const, bg: '#dcfce7', border: '#22c55e', color: '#15803d' },
-  { key: 'repository' as const, bg: '#ffedd5', border: '#f97316', color: '#9a3412' },
+  { key: 'controller' as const, bg: 'rgba(96,165,250,0.12)',  border: 'rgba(96,165,250,0.3)',  color: '#93c5fd' },
+  { key: 'service'    as const, bg: 'rgba(52,211,153,0.1)',   border: 'rgba(52,211,153,0.3)',  color: '#6ee7b7' },
+  { key: 'repository' as const, bg: 'rgba(251,146,60,0.1)',   border: 'rgba(251,146,60,0.3)',  color: '#fcd34d' },
 ]
 
 export default function App() {
@@ -51,7 +49,6 @@ export default function App() {
   const [activeSection, setActiveSection] = useState<ResultSection>('graph')
   const userMenuRef = useRef<HTMLDivElement>(null)
 
-  // 유저 메뉴 외부 클릭 시 닫기
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
@@ -62,7 +59,6 @@ export default function App() {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  // 프로젝트 탭 인라인 온보딩 상태
   type InlineOnboarding =
     | { phase: 'idle' }
     | { phase: 'loading' }
@@ -70,7 +66,6 @@ export default function App() {
     | { phase: 'error'; message: string }
   const [inlineOnboarding, setInlineOnboarding] = useState<InlineOnboarding>({ phase: 'idle' })
 
-  // 코드 분석 상태
   type CodeState =
     | { phase: 'idle' }
     | { phase: 'loading' }
@@ -91,13 +86,10 @@ export default function App() {
 
   const resetCode = () => setCodeState({ phase: 'idle' })
 
-  // 페이지 로드 시 저장된 토큰으로 유저 정보 복원
   useEffect(() => {
     const token = getToken()
     if (!token) return
-    meApi(token)
-      .then(setUser)
-      .catch(() => clearToken())
+    meApi(token).then(setUser).catch(() => clearToken())
   }, [])
 
   const handleAuthSuccess = (token: string, email: string) => {
@@ -107,12 +99,8 @@ export default function App() {
       .catch(() => setUser({ id: 0, email, name: null, birth_date: null, created_at: '' }))
   }
 
-  const handleLogout = () => {
-    clearToken()
-    setUser(null)
-  }
+  const handleLogout = () => { clearToken(); setUser(null) }
 
-  // 인라인 온보딩 CTA 핸들러 — 탭 전환 없이 바로 가이드 생성
   const handleOnboardingCTA = useCallback(async () => {
     if (state.phase !== 'done') return
     setInlineOnboarding({ phase: 'loading' })
@@ -126,13 +114,11 @@ export default function App() {
 
   const handleSubmit = useCallback(async (url: string) => {
     setInlineOnboarding({ phase: 'idle' })
-
     const trySubmit = async (isRetry = false): Promise<void> => {
       try {
         const token = getToken() ?? undefined
         const jobId = await submitRepo(url, token)
         setState({ phase: 'loading', jobId, status: 'pending' })
-
         const cancel = pollJob(jobId, (job: JobResponse) => {
           if (job.status === 'complete' && job.result) {
             cancel()
@@ -141,13 +127,10 @@ export default function App() {
             cancel()
             setState({ phase: 'error', message: job.error ?? t.errors.unknown })
           } else {
-            setState(prev =>
-              prev.phase === 'loading' ? { ...prev, status: job.status } : prev
-            )
+            setState(prev => prev.phase === 'loading' ? { ...prev, status: job.status } : prev)
           }
         })
       } catch (err) {
-        // 네트워크 오류이고 첫 시도이면 5초 후 자동 재시도
         const isNetworkError = err instanceof Error &&
           (err.message.includes('연결할 수 없습니다') || err.message.includes('초과됐습니다'))
         if (isNetworkError && !isRetry) {
@@ -158,7 +141,6 @@ export default function App() {
         setState({ phase: 'error', message: String(err) })
       }
     }
-
     await trySubmit()
   }, [t])
 
@@ -169,12 +151,10 @@ export default function App() {
   }
 
   const loading = state.phase === 'loading'
-
-  // Compute per-framework layer labels for the legend
   const frameworks = state.phase === 'done' ? (state.graph.frameworks ?? []) : []
+
   const getLayerLabel = (layer: 'controller' | 'service' | 'repository'): string => {
     if (frameworks.length === 0) return t.legend[layer]
-    // Collect unique labels across detected frameworks
     const labels = Array.from(new Set(
       frameworks.map(fw => t.layerNames[fw]?.[layer] ?? t.legend[layer])
     ))
@@ -182,91 +162,118 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col" style={{
-      backgroundImage: 'linear-gradient(rgba(148,163,184,0.12) 1px, transparent 1px), linear-gradient(90deg, rgba(148,163,184,0.12) 1px, transparent 1px)',
-      backgroundSize: '32px 32px',
-    }}>
-      {/* Auth 모달 */}
-      {showAuth && (
-        <AuthModal
-          onClose={() => setShowAuth(false)}
-          onSuccess={handleAuthSuccess}
-        />
-      )}
+    <div className="min-h-screen flex flex-col" style={{ background: 'var(--bg)', color: 'var(--text)', position: 'relative' }}>
 
-      {/* 마이페이지 모달 */}
-      {showMyPage && user && (
-        <MyPage
-          user={user}
-          onClose={() => setShowMyPage(false)}
-          onLogout={handleLogout}
-          onUserUpdate={setUser}
-        />
-      )}
+      {/* Aurora orbs */}
+      <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0, overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', width: 700, height: 700, borderRadius: '50%', background: 'radial-gradient(circle, #7c3aed, transparent 70%)', filter: 'blur(90px)', opacity: 0.3, top: -250, left: -150 }} />
+        <div style={{ position: 'absolute', width: 500, height: 500, borderRadius: '50%', background: 'radial-gradient(circle, #34d399, transparent 70%)', filter: 'blur(80px)', opacity: 0.18, top: 80, right: -120 }} />
+        <div style={{ position: 'absolute', width: 400, height: 400, borderRadius: '50%', background: 'radial-gradient(circle, #7c3aed, transparent 70%)', filter: 'blur(80px)', opacity: 0.12, bottom: 200, right: 250 }} />
+      </div>
 
-      {/* 결제 유도 모달 */}
+      {/* Modals */}
+      {showAuth && <AuthModal onClose={() => setShowAuth(false)} onSuccess={handleAuthSuccess} />}
+      {showMyPage && user && <MyPage user={user} onClose={() => setShowMyPage(false)} onLogout={handleLogout} onUserUpdate={setUser} />}
       {showPaymentModal && (
         <PaymentModal
           onClose={() => setShowPaymentModal(false)}
-          onConfirm={() => {
-            setShowPaymentModal(false)
-            handleOnboardingCTA()
-          }}
+          onConfirm={() => { setShowPaymentModal(false); handleOnboardingCTA() }}
         />
       )}
 
       {/* Header */}
-      <header className="sticky top-0 z-40 bg-slate-900/95 backdrop-blur border-b border-slate-800 px-6 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <span className="text-lg font-bold text-white tracking-tight">OnboardAI</span>
-          <span className="text-xs px-2 py-0.5 bg-emerald-500/15 text-emerald-400 rounded-md font-medium border border-emerald-500/25">
-            beta
-          </span>
+      <header style={{
+        position: 'sticky', top: 0, zIndex: 40,
+        background: 'rgba(5,5,16,0.85)',
+        borderBottom: '1px solid var(--border)',
+        backdropFilter: 'blur(20px)',
+        padding: '0 32px', height: 60,
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          {/* Logo mark */}
+          <div style={{
+            width: 28, height: 28, borderRadius: 8,
+            background: 'linear-gradient(135deg, #7c3aed, #34d399)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: '0.75rem', flexShrink: 0,
+          }}>✦</div>
+          <span style={{ fontSize: '1.05rem', fontWeight: 700, letterSpacing: '-0.5px' }}>OnboardAI</span>
+          <span style={{
+            fontSize: '0.62rem', fontWeight: 600,
+            color: 'var(--purple-light)',
+            background: 'var(--purple-glow)',
+            padding: '2px 8px', borderRadius: 100,
+            border: '1px solid rgba(124,58,237,0.3)',
+          }}>beta</span>
         </div>
-        <div className="flex items-center gap-3">
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <select
             value={lang}
             onChange={e => setLang(e.target.value as 'ko' | 'en')}
-            className="text-xs px-2 py-1.5 rounded-md border border-slate-700 bg-slate-800 text-slate-400
-                       focus:outline-none focus:ring-1 focus:ring-emerald-500 cursor-pointer"
+            style={{
+              fontFamily: 'Inter, sans-serif', fontSize: '0.75rem',
+              padding: '5px 10px', background: 'var(--surface)',
+              color: 'var(--text-muted)', border: '1px solid var(--border)',
+              borderRadius: 8, outline: 'none', cursor: 'pointer',
+            }}
           >
             <option value="ko">{t.lang.ko}</option>
             <option value="en">{t.lang.en}</option>
           </select>
 
-          {/* 로그인/유저 영역 */}
           {user ? (
-            <div className="relative" ref={userMenuRef}>
-              {/* 유저 버튼 */}
+            <div style={{ position: 'relative' }} ref={userMenuRef}>
               <button
                 onClick={() => setShowUserMenu(v => !v)}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-md border border-slate-700
-                           text-slate-300 hover:bg-slate-800 hover:border-slate-600 transition-all text-xs"
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 8,
+                  padding: '6px 14px', borderRadius: 10,
+                  background: 'var(--surface)', border: '1px solid var(--border)',
+                  color: 'var(--text)', cursor: 'pointer', fontSize: '0.8rem',
+                  transition: 'all 0.15s',
+                }}
               >
-                <span className="w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center text-white font-bold text-xs shrink-0">
+                <span style={{
+                  width: 22, height: 22, borderRadius: '50%', flexShrink: 0,
+                  background: 'linear-gradient(135deg, #7c3aed, #34d399)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: 'white', fontWeight: 700, fontSize: '0.7rem',
+                }}>
                   {(user.name ?? user.email)[0].toUpperCase()}
                 </span>
-                <span className="max-w-[120px] truncate">{user.name ?? user.email}</span>
-                <span className="text-slate-500 text-[10px]">{showUserMenu ? '▲' : '▼'}</span>
+                <span style={{ maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {user.name ?? user.email}
+                </span>
+                <span style={{ color: 'var(--text-muted)', fontSize: '0.65rem' }}>{showUserMenu ? '▲' : '▼'}</span>
               </button>
 
-              {/* 드롭다운 */}
               {showUserMenu && (
-                <div className="absolute right-0 top-full mt-1.5 w-44 bg-slate-800 border border-slate-700 rounded-lg shadow-xl overflow-hidden">
-                  <div className="px-3 py-2 border-b border-slate-700">
-                    <p className="text-xs text-slate-400 truncate">{user.email}</p>
+                <div style={{
+                  position: 'absolute', right: 0, top: 'calc(100% + 6px)',
+                  width: 180, borderRadius: 12, overflow: 'hidden',
+                  background: 'rgba(13,13,31,0.95)', border: '1px solid var(--border-bright)',
+                  backdropFilter: 'blur(20px)', boxShadow: '0 20px 40px rgba(0,0,0,0.6)',
+                }}>
+                  <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border)' }}>
+                    <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.email}</p>
                   </div>
                   <button
                     onClick={() => { setShowMyPage(true); setShowUserMenu(false) }}
-                    className="w-full text-left px-3 py-2.5 text-xs text-slate-300 hover:bg-slate-700 transition-colors flex items-center gap-2"
+                    style={{ width: '100%', textAlign: 'left', padding: '10px 14px', fontSize: '0.8rem', color: 'var(--text)', background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, transition: 'background 0.15s' }}
+                    onMouseEnter={e => (e.currentTarget.style.background = 'var(--surface-hover)')}
+                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                   >
-                    <span>⚙️</span> {t.myPage.title}
+                    ⚙️ {t.myPage.title}
                   </button>
                   <button
                     onClick={() => { handleLogout(); setShowUserMenu(false) }}
-                    className="w-full text-left px-3 py-2.5 text-xs text-red-400 hover:bg-slate-700 transition-colors flex items-center gap-2 border-t border-slate-700"
+                    style={{ width: '100%', textAlign: 'left', padding: '10px 14px', fontSize: '0.8rem', color: '#f87171', background: 'transparent', border: 'none', borderTop: '1px solid var(--border)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, transition: 'background 0.15s' }}
+                    onMouseEnter={e => (e.currentTarget.style.background = 'var(--surface-hover)')}
+                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                   >
-                    <span>→</span> {t.auth.logout}
+                    → {t.auth.logout}
                   </button>
                 </div>
               )}
@@ -274,8 +281,8 @@ export default function App() {
           ) : (
             <button
               onClick={() => setShowAuth(true)}
-              className="text-xs px-3 py-1.5 bg-emerald-500 text-white rounded-md font-medium
-                         hover:bg-emerald-600 transition-colors"
+              className="aurora-btn"
+              style={{ padding: '8px 20px', borderRadius: 10, fontSize: '0.82rem' }}
             >
               {t.auth.login}
             </button>
@@ -284,72 +291,96 @@ export default function App() {
       </header>
 
       {/* Main */}
-      <main className={`flex-1 flex flex-col px-6 py-12 gap-6 ${activeTab === 'project' && state.phase === 'done' ? 'items-stretch max-w-none' : 'items-center'}`}>
+      <main style={{
+        flex: 1, display: 'flex', flexDirection: 'column', position: 'relative', zIndex: 1,
+        padding: activeTab === 'project' && state.phase === 'done' ? '24px 24px' : '48px 24px',
+        gap: 24, alignItems: activeTab === 'project' && state.phase === 'done' ? 'stretch' : 'center',
+      }}>
 
         {/* Hero */}
-        <div className="text-center max-w-xl self-center">
-          <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-emerald-600 text-xs font-medium mb-4">
-            <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
-            AI-powered Code Onboarding
+        {!(activeTab === 'project' && state.phase === 'done') && (
+          <div style={{ textAlign: 'center', maxWidth: 560, alignSelf: 'center' }}>
+            <div style={{
+              display: 'inline-flex', alignItems: 'center', gap: 8,
+              padding: '6px 14px', borderRadius: 100,
+              background: 'var(--mint-glow)', border: '1px solid rgba(52,211,153,0.2)',
+              color: 'var(--mint)', fontSize: '0.72rem', fontWeight: 600,
+              letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 20,
+            }}>
+              <span style={{ width: 6, height: 6, background: 'var(--mint)', borderRadius: '50%', animation: 'pulse 2s infinite' }} />
+              AI-Powered Code Onboarding
+            </div>
+            <h1 style={{ fontSize: '3.2rem', fontWeight: 800, letterSpacing: '-2px', lineHeight: 1.05, marginBottom: 16, color: 'var(--text)' }}>
+              {t.title}
+            </h1>
+            <p style={{ fontSize: '1rem', color: 'var(--text-muted)', lineHeight: 1.75 }}>{t.subtitle}</p>
           </div>
-          <h1 className="text-4xl font-bold text-slate-900 tracking-tight">{t.title}</h1>
-          <p className="text-slate-500 mt-3 text-sm leading-relaxed">{t.subtitle}</p>
-        </div>
+        )}
 
-        {/* 탭 */}
-        <div className="self-center">
-          <TabBar active={activeTab} onChange={setActiveTab} />
-        </div>
+        {/* TabBar */}
+        {!(activeTab === 'project' && state.phase === 'done') && (
+          <div style={{ alignSelf: 'center' }}>
+            <TabBar active={activeTab} onChange={setActiveTab} />
+          </div>
+        )}
 
-        {/* 프로젝트 분석 탭 */}
+        {/* 프로젝트 분석 입력 */}
         {activeTab === 'project' && state.phase !== 'done' && (
-          <div className="self-center w-full max-w-xl">
+          <div style={{ alignSelf: 'center', width: '100%', maxWidth: 560 }}>
             <RepoForm onSubmit={handleSubmit} loading={loading} />
           </div>
         )}
 
-        {/* 코드 분석 탭 */}
-        {activeTab === 'code' && codeState.phase === 'idle' && (
-          <CodeAnalysisForm onSubmit={handleCodeSubmit} loading={false} />
-        )}
-        {activeTab === 'code' && codeState.phase === 'loading' && (
-          <CodeAnalysisForm onSubmit={handleCodeSubmit} loading={true} />
+        {/* 코드 분석 폼 */}
+        {activeTab === 'code' && (codeState.phase === 'idle' || codeState.phase === 'loading') && (
+          <CodeAnalysisForm onSubmit={handleCodeSubmit} loading={codeState.phase === 'loading'} />
         )}
 
-        {/* 광고 — 코드 분석 결과 상단 */}
+        {/* 코드 분석 광고 */}
         {activeTab === 'code' && (codeState.phase === 'done' || codeState.phase === 'error') && (
           <AdBanner slot="7183168015" format="horizontal" className="w-full max-w-2xl h-[90px]" />
         )}
 
-        {/* 코드 분석 결과 */}
+        {/* 코드 분석 에러 */}
         {activeTab === 'code' && codeState.phase === 'error' && (
           <>
             <StatusBanner status="failed" error={codeState.message} />
-            <button onClick={resetCode} className="text-sm text-gray-500 underline hover:text-gray-700">
+            <button
+              onClick={resetCode}
+              style={{ fontSize: '0.85rem', color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
+            >
               {t.app.reset}
             </button>
           </>
         )}
+
+        {/* 코드 분석 결과 */}
         {activeTab === 'code' && codeState.phase === 'done' && (
           <CodeAnalysisResult result={codeState.result} onReset={resetCode} />
         )}
 
         {/* 프로젝트 분석 Status */}
         {activeTab === 'project' && state.phase === 'loading' && (
-          <div className="self-center w-full max-w-xl"><StatusBanner status={state.status} /></div>
+          <div style={{ alignSelf: 'center', width: '100%', maxWidth: 560 }}>
+            <StatusBanner status={state.status} />
+          </div>
         )}
         {activeTab === 'project' && state.phase === 'error' && (
-          <div className="self-center w-full max-w-xl"><StatusBanner status="failed" error={state.message} /></div>
+          <div style={{ alignSelf: 'center', width: '100%', maxWidth: 560 }}>
+            <StatusBanner status="failed" error={state.message} />
+          </div>
         )}
         {activeTab === 'project' && state.phase === 'done' && (
-          <div className="self-center w-full max-w-xl"><StatusBanner status="complete" stats={state.stats} /></div>
+          <div style={{ alignSelf: 'center', width: '100%', maxWidth: 560 }}>
+            <StatusBanner status="complete" stats={state.stats} />
+          </div>
         )}
 
-        {/* Reset button */}
+        {/* Reset */}
         {activeTab === 'project' && (state.phase === 'done' || state.phase === 'error') && (
           <button
             onClick={reset}
-            className="self-center text-sm text-gray-500 underline hover:text-gray-700"
+            style={{ alignSelf: 'center', fontSize: '0.82rem', color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
           >
             {t.app.reset}
           </button>
@@ -357,23 +388,20 @@ export default function App() {
 
         {/* 프로젝트 분석 결과 — 사이드바 레이아웃 */}
         {activeTab === 'project' && state.phase === 'done' && (
-          <div className="w-full flex flex-col lg:flex-row gap-4">
+          <div style={{ width: '100%', display: 'flex', gap: 16, alignItems: 'flex-start' }}>
 
-            {/* 왼쪽 사이드바 */}
-            <aside className="lg:w-52 shrink-0 flex lg:flex-col flex-row gap-2 lg:gap-1">
-              {/* 감지된 프레임워크 */}
+            {/* 사이드바 */}
+            <aside style={{ width: 200, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
+
+              {/* 프레임워크 뱃지 */}
               {frameworks.length > 0 && (
-                <div className="hidden lg:flex flex-col gap-1.5 px-3 py-2.5 mb-2 bg-white rounded-xl border border-slate-200">
-                  <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Framework</span>
-                  <div className="flex flex-wrap gap-1.5">
+                <div style={{ padding: '12px 14px', borderRadius: 14, background: 'var(--surface)', border: '1px solid var(--border)' }}>
+                  <span style={{ fontSize: '0.62rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: 8 }}>Framework</span>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                     {frameworks.map(fw => {
-                      const style = FW_STYLE[fw] ?? { bg: '#f3f4f6', text: '#374151', border: '#9ca3af' }
+                      const s = FW_COLORS[fw] ?? { bg: 'rgba(255,255,255,0.06)', text: 'var(--text-muted)', border: 'var(--border)' }
                       return (
-                        <span
-                          key={fw}
-                          className="text-xs px-2 py-0.5 rounded-full font-semibold"
-                          style={{ background: style.bg, color: style.text, border: `1px solid ${style.border}` }}
-                        >
+                        <span key={fw} style={{ fontSize: '0.72rem', fontWeight: 600, padding: '2px 10px', borderRadius: 100, background: s.bg, color: s.text, border: `1px solid ${s.border}` }}>
                           {t.frameworks[fw as keyof typeof t.frameworks] ?? fw}
                         </span>
                       )
@@ -382,75 +410,79 @@ export default function App() {
                 </div>
               )}
 
-              {/* 네비게이션 버튼 */}
-              {(
-                [
-                  { key: 'graph' as const,  icon: '🗺️', label: '아키텍처 그래프' },
-                  { key: 'issues' as const, icon: '🔍', label: '코드 이슈', badge: state.graph.issues?.length },
-                  { key: 'guide' as const,  icon: '🚀', label: 'AI 온보딩 가이드' },
-                ] as const
-              ).map(item => (
+              {/* 네비게이션 */}
+              {([
+                { key: 'graph'  as const, icon: '◆', label: '아키텍처 그래프' },
+                { key: 'issues' as const, icon: '◎', label: '코드 이슈', badge: state.graph.issues?.length },
+                { key: 'guide'  as const, icon: '✦', label: 'AI 온보딩 가이드' },
+              ] as const).map(item => (
                 <button
                   key={item.key}
                   onClick={() => setActiveSection(item.key)}
-                  className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-left
-                    ${activeSection === item.key
-                      ? 'bg-emerald-500 text-white shadow-sm'
-                      : 'bg-white text-slate-600 border border-slate-200 hover:border-emerald-300 hover:text-emerald-700'
-                    }`}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 10,
+                    padding: '10px 14px', borderRadius: 12, fontSize: '0.82rem', fontWeight: 500,
+                    textAlign: 'left', cursor: 'pointer', transition: 'all 0.15s', border: 'none',
+                    background: activeSection === item.key ? 'linear-gradient(135deg, #7c3aed, #34d399)' : 'var(--surface)',
+                    color: activeSection === item.key ? 'white' : 'var(--text-muted)',
+                    boxShadow: activeSection === item.key ? '0 4px 15px rgba(124,58,237,0.3)' : 'none',
+                  }}
                 >
-                  <span className="text-base shrink-0">{item.icon}</span>
-                  <span className="truncate">{item.label}</span>
+                  <span style={{ fontSize: '0.9rem', flexShrink: 0 }}>{item.icon}</span>
+                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>{item.label}</span>
                   {'badge' in item && item.badge !== undefined && item.badge > 0 && (
-                    <span className={`ml-auto text-xs px-1.5 py-0.5 rounded-full font-semibold shrink-0
-                      ${activeSection === item.key ? 'bg-white/20 text-white' : 'bg-red-100 text-red-600'}`}>
+                    <span style={{
+                      marginLeft: 'auto', fontSize: '0.65rem', fontWeight: 700, flexShrink: 0,
+                      padding: '1px 7px', borderRadius: 100,
+                      background: activeSection === item.key ? 'rgba(255,255,255,0.2)' : 'rgba(248,113,113,0.15)',
+                      color: activeSection === item.key ? 'white' : '#f87171',
+                    }}>
                       {item.badge}
                     </span>
                   )}
                 </button>
               ))}
 
-              {/* PDF 다운로드 버튼 */}
+              {/* PDF */}
               <button
-                onClick={() => downloadPdf(
-                  state.repoUrl,
-                  state.graph,
-                  inlineOnboarding.phase === 'done' ? inlineOnboarding.result : null,
-                )}
-                className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium
-                           bg-white text-slate-600 border border-slate-200 hover:border-emerald-300
-                           hover:text-emerald-700 transition-all mt-2"
+                onClick={() => downloadPdf(state.repoUrl, state.graph, inlineOnboarding.phase === 'done' ? inlineOnboarding.result : null)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 10,
+                  padding: '10px 14px', borderRadius: 12, fontSize: '0.82rem', fontWeight: 500,
+                  textAlign: 'left', cursor: 'pointer', transition: 'all 0.15s',
+                  background: 'var(--surface)', border: '1px solid var(--border)',
+                  color: 'var(--text-muted)', marginTop: 4,
+                }}
+                onMouseEnter={e => (e.currentTarget.style.background = 'var(--surface-hover)')}
+                onMouseLeave={e => (e.currentTarget.style.background = 'var(--surface)')}
               >
-                <span className="text-base shrink-0">📄</span>
-                <span className="truncate">PDF 내보내기</span>
+                <span style={{ flexShrink: 0 }}>↓</span>
+                <span>PDF 내보내기</span>
               </button>
 
-              {/* 레이어 범례 — 사이드바 하단 (lg 이상) */}
-              <div className="hidden lg:flex flex-col gap-1.5 px-3 py-2.5 mt-2 bg-white rounded-xl border border-slate-200">
-                <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Legend</span>
+              {/* Legend */}
+              <div style={{ padding: '12px 14px', borderRadius: 14, background: 'var(--surface)', border: '1px solid var(--border)', marginTop: 4 }}>
+                <span style={{ fontSize: '0.62rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: 8 }}>Legend</span>
                 {LEGEND_LAYERS.map(({ key, bg, border, color }) => (
-                  <span
-                    key={key}
-                    className="text-xs px-2 py-0.5 rounded-md font-medium w-fit"
-                    style={{ background: bg, border: `1px solid ${border}`, color }}
-                  >
+                  <span key={key} style={{ display: 'block', fontSize: '0.72rem', fontWeight: 500, padding: '3px 10px', borderRadius: 6, background: bg, border: `1px solid ${border}`, color, marginBottom: 4 }}>
                     {getLayerLabel(key)}
                   </span>
                 ))}
               </div>
             </aside>
 
-            {/* 오른쪽 컨텐츠 */}
-            <div className="flex-1 min-w-0">
+            {/* 컨텐츠 */}
+            <div style={{ flex: 1, minWidth: 0 }}>
 
-              {/* 그래프 섹션 */}
               {activeSection === 'graph' && (
-                <div className="bg-white rounded-xl border border-slate-200 overflow-hidden" style={{ height: '75vh', minHeight: '500px' }}>
+                <div style={{
+                  borderRadius: 16, overflow: 'hidden', height: '75vh', minHeight: 500,
+                  border: '1px solid var(--border)', background: 'rgba(5,5,16,0.8)',
+                }}>
                   <FlowGraph graph={state.graph} />
                 </div>
               )}
 
-              {/* 코드 이슈 섹션 */}
               {activeSection === 'issues' && (
                 <IssuePanel
                   issues={state.graph.issues ?? []}
@@ -459,41 +491,53 @@ export default function App() {
                 />
               )}
 
-              {/* AI 가이드 섹션 */}
               {activeSection === 'guide' && (
-                <div className="flex flex-col gap-4">
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                   {inlineOnboarding.phase === 'idle' && (
-                    <div className="bg-white rounded-xl border border-slate-200 p-8 flex flex-col items-center gap-4">
-                      <span className="text-4xl">🚀</span>
-                      <div className="text-center">
-                        <p className="text-slate-700 font-semibold mb-1">AI 온보딩 가이드</p>
-                        <p className="text-xs text-slate-400">신규 개발자를 위한 AI 온보딩 가이드를 자동으로 생성합니다</p>
+                    <div style={{
+                      borderRadius: 20, border: '1px solid var(--border-bright)',
+                      background: 'var(--surface)', padding: '48px 24px',
+                      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16,
+                      backdropFilter: 'blur(20px)',
+                    }}>
+                      <span style={{ fontSize: '2.5rem' }}>✦</span>
+                      <div style={{ textAlign: 'center' }}>
+                        <p style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--text)', marginBottom: 6 }}>AI 온보딩 가이드</p>
+                        <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>신규 개발자를 위한 AI 온보딩 가이드를 자동으로 생성합니다</p>
                       </div>
                       <button
                         onClick={() => setShowPaymentModal(true)}
-                        className="px-8 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-white
-                                   font-semibold rounded-xl shadow-sm hover:shadow-md hover:scale-105
-                                   transition-all text-sm flex items-center gap-2"
+                        className="aurora-btn"
+                        style={{ padding: '12px 32px', borderRadius: 12, fontSize: '0.9rem' }}
                       >
-                        <span>온보딩 가이드 생성하기</span>
-                        <span className="text-xs bg-white/20 px-2 py-0.5 rounded-full">Premium</span>
+                        온보딩 가이드 생성하기 →
                       </button>
                     </div>
                   )}
 
                   {inlineOnboarding.phase === 'loading' && (
-                    <div className="bg-white rounded-xl border border-slate-200 p-12 flex flex-col items-center gap-4">
-                      <div className="w-10 h-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
-                      <p className="text-sm text-slate-500">온보딩 가이드 생성 중... (최대 60초 소요)</p>
+                    <div style={{
+                      borderRadius: 20, border: '1px solid var(--border)',
+                      background: 'var(--surface)', padding: '64px 24px',
+                      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16,
+                    }}>
+                      <div style={{
+                        width: 44, height: 44, borderRadius: '50%',
+                        border: '3px solid transparent',
+                        borderTopColor: 'var(--purple)',
+                        borderRightColor: 'var(--mint)',
+                        animation: 'spin 0.8s linear infinite',
+                      }} />
+                      <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>온보딩 가이드 생성 중... (최대 60초 소요)</p>
                     </div>
                   )}
 
                   {inlineOnboarding.phase === 'error' && (
-                    <div className="flex flex-col items-center gap-3">
-                      <div className="w-full p-4 bg-red-50 text-red-600 rounded-xl text-sm border border-red-100">
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+                      <div style={{ width: '100%', padding: '14px 18px', borderRadius: 12, background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', color: '#fca5a5', fontSize: '0.85rem' }}>
                         {inlineOnboarding.message}
                       </div>
-                      <button onClick={handleOnboardingCTA} className="text-sm text-emerald-600 underline hover:text-emerald-700">
+                      <button onClick={handleOnboardingCTA} style={{ fontSize: '0.82rem', color: 'var(--mint)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>
                         다시 시도
                       </button>
                     </div>
@@ -507,54 +551,36 @@ export default function App() {
                   )}
                 </div>
               )}
-
             </div>
           </div>
         )}
-
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-slate-200 bg-white/70 backdrop-blur mt-auto">
-        <div className="max-w-5xl mx-auto px-6 py-8">
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-
-            {/* 로고 */}
-            <div className="flex flex-col gap-1.5">
-              <span className="font-bold text-slate-800 text-sm">OnboardAI</span>
-              <p className="text-xs text-slate-400">Made by <span className="font-medium text-slate-500">Makelab</span></p>
-            </div>
-
-            {/* 링크 */}
-            <div className="flex flex-col gap-2">
-              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Links</span>
-              <div className="flex flex-col gap-1.5">
-                <a href="https://onboardai.makelab.kr" className="text-xs text-slate-400 hover:text-emerald-600 transition-colors">
-                  onboardai.makelab.kr
-                </a>
-              </div>
-            </div>
-
-            {/* 상태 */}
-            <div className="flex flex-col gap-2">
-              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</span>
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
-                <span className="text-xs text-slate-500">All systems operational</span>
-              </div>
-            </div>
+      <footer style={{
+        borderTop: '1px solid var(--border)',
+        background: 'rgba(5,5,16,0.6)',
+        backdropFilter: 'blur(20px)',
+        padding: '32px',
+        position: 'relative', zIndex: 1,
+      }}>
+        <div style={{ maxWidth: 1100, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
+          <div>
+            <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>OnboardAI</span>
+            <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 4 }}>Made by <strong style={{ color: 'rgba(255,255,255,0.5)' }}>Makelab</strong></p>
           </div>
-
-          {/* 하단 */}
-          <div className="mt-6 pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-2">
-            <span className="text-xs text-slate-400">© 2026 OnboardAI. All rights reserved.</span>
-            <div className="flex items-center gap-4">
-              <span className="text-xs text-slate-300">이용약관</span>
-              <span className="text-xs text-slate-300">개인정보처리방침</span>
-            </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+            <span style={{ width: 6, height: 6, background: 'var(--mint)', borderRadius: '50%', animation: 'pulse 2s infinite', display: 'inline-block' }} />
+            All systems operational
           </div>
+          <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>© 2026 OnboardAI</span>
         </div>
       </footer>
+
+      <style>{`
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+      `}</style>
     </div>
   )
 }

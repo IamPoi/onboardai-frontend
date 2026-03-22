@@ -2,13 +2,13 @@ import { useState } from 'react'
 import { onboardingApi, type OnboardingResult } from '../lib/api'
 import { useLang } from '../contexts/LangContext'
 
-const LAYER_BADGE: Record<string, string> = {
-  controller: 'bg-blue-100 text-blue-700 border-blue-200',
-  service:    'bg-emerald-100 text-emerald-700 border-emerald-200',
-  repository: 'bg-orange-100 text-orange-700 border-orange-200',
-  view:       'bg-blue-100 text-blue-700 border-blue-200',
-  model:      'bg-orange-100 text-orange-700 border-orange-200',
-  router:     'bg-blue-100 text-blue-700 border-blue-200',
+const LAYER_BADGE: Record<string, { bg: string; color: string; border: string }> = {
+  controller: { bg: 'rgba(96,165,250,0.15)',  color: '#60a5fa', border: 'rgba(96,165,250,0.3)' },
+  service:    { bg: 'rgba(52,211,153,0.15)',  color: 'var(--mint)', border: 'rgba(52,211,153,0.3)' },
+  repository: { bg: 'rgba(249,115,22,0.15)',  color: '#fb923c', border: 'rgba(249,115,22,0.3)' },
+  view:       { bg: 'rgba(96,165,250,0.15)',  color: '#60a5fa', border: 'rgba(96,165,250,0.3)' },
+  model:      { bg: 'rgba(249,115,22,0.15)',  color: '#fb923c', border: 'rgba(249,115,22,0.3)' },
+  router:     { bg: 'rgba(96,165,250,0.15)',  color: '#60a5fa', border: 'rgba(96,165,250,0.3)' },
 }
 
 interface Props {
@@ -18,7 +18,6 @@ interface Props {
 }
 
 function parseChecklist(tip: string): string[] {
-  // 줄바꿈 또는 번호/불릿으로 분리
   const lines = tip.split(/\n|(?:\d+\.\s)|(?:[-•]\s)/).map(l => l.trim()).filter(Boolean)
   return lines.length >= 2 ? lines : [tip]
 }
@@ -56,64 +55,101 @@ export default function OnboardingGuide({ lang, prefilledUrl, preloadedResult }:
         {/* 상단 헤더 */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="text-xs px-2 py-0.5 bg-emerald-500 text-white rounded-full font-semibold">Premium</span>
-            <span className="text-sm font-semibold text-slate-700">AI 온보딩 가이드</span>
+            <span
+              className="text-xs px-2 py-0.5 rounded-full font-semibold"
+              style={{ background: 'linear-gradient(135deg, var(--purple), var(--mint))', color: 'white' }}
+            >
+              Premium
+            </span>
+            <span className="text-sm font-semibold" style={{ color: 'var(--text)' }}>AI 온보딩 가이드</span>
           </div>
-          <button onClick={reset} className="text-xs text-slate-400 hover:text-slate-600">초기화</button>
+          <button
+            onClick={reset}
+            className="text-xs transition-colors hover:opacity-100"
+            style={{ color: 'var(--text-muted)' }}
+          >
+            초기화
+          </button>
         </div>
 
         {/* Bento Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
           {/* 아키텍처 요약 — 전폭 */}
-          <div className="md:col-span-2 bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-5 text-white">
-            <div className="flex items-center gap-2 mb-2">
+          <div
+            className="md:col-span-2 rounded-2xl p-5 relative overflow-hidden"
+            style={{
+              background: 'linear-gradient(135deg, rgba(124,58,237,0.2), rgba(52,211,153,0.1))',
+              border: '1px solid rgba(124,58,237,0.3)',
+            }}
+          >
+            <div
+              className="absolute -top-12 -right-12 w-40 h-40 rounded-full pointer-events-none"
+              style={{ background: 'radial-gradient(circle, rgba(124,58,237,0.2), transparent 70%)', filter: 'blur(30px)' }}
+            />
+            <div className="flex items-center gap-2 mb-2 relative">
               <span className="text-xl">🏗️</span>
-              <h3 className="text-sm font-bold text-slate-200">아키텍처 요약</h3>
+              <h3 className="text-sm font-bold" style={{ color: 'var(--purple-light)' }}>아키텍처 요약</h3>
             </div>
-            <p className="text-slate-300 text-sm leading-relaxed">{result.architecture_summary}</p>
+            <p className="text-sm leading-relaxed relative" style={{ color: 'var(--text)' }}>
+              {result.architecture_summary}
+            </p>
           </div>
 
           {/* 핵심 클래스 */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-5">
+          <div className="glass-card rounded-2xl p-5">
             <div className="flex items-center gap-2 mb-3">
               <span className="text-lg">🔑</span>
-              <h3 className="text-sm font-bold text-slate-800">{t.onboarding.topClasses}</h3>
+              <h3 className="text-sm font-bold" style={{ color: 'var(--text)' }}>{t.onboarding.topClasses}</h3>
             </div>
             <div className="flex flex-col gap-2.5">
-              {result.top_classes.map((cls, i) => (
-                <div key={cls.name} className="flex gap-3 items-start">
-                  <span className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">
-                    {i + 1}
-                  </span>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="font-bold text-slate-900 font-mono text-xs">{cls.name}</span>
-                      <span className={`text-[10px] px-1.5 py-0.5 rounded-full border font-medium ${LAYER_BADGE[cls.layer] ?? 'bg-slate-100 text-slate-600 border-slate-200'}`}>
-                        {cls.layer}
-                      </span>
+              {result.top_classes.map((cls, i) => {
+                const badge = LAYER_BADGE[cls.layer] ?? { bg: 'rgba(255,255,255,0.08)', color: 'var(--text-muted)', border: 'var(--border)' }
+                return (
+                  <div key={cls.name} className="flex gap-3 items-start">
+                    <span
+                      className="w-5 h-5 rounded-full font-bold text-xs flex items-center justify-center shrink-0 mt-0.5"
+                      style={{ background: 'rgba(52,211,153,0.15)', color: 'var(--mint)', border: '1px solid rgba(52,211,153,0.3)' }}
+                    >
+                      {i + 1}
+                    </span>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="font-bold font-mono text-xs" style={{ color: 'var(--text)' }}>{cls.name}</span>
+                        <span
+                          className="text-[10px] px-1.5 py-0.5 rounded-full font-medium"
+                          style={{ background: badge.bg, color: badge.color, border: `1px solid ${badge.border}` }}
+                        >
+                          {cls.layer}
+                        </span>
+                      </div>
+                      <p className="text-xs mt-0.5 leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+                        {cls.why_important}
+                      </p>
                     </div>
-                    <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">{cls.why_important}</p>
                   </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           </div>
 
           {/* 온보딩 체크리스트 */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-5">
+          <div className="glass-card rounded-2xl p-5">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <span className="text-lg">📋</span>
-                <h3 className="text-sm font-bold text-slate-800">온보딩 체크리스트</h3>
+                <h3 className="text-sm font-bold" style={{ color: 'var(--text)' }}>온보딩 체크리스트</h3>
               </div>
-              <span className="text-xs text-slate-400">{completedCount}/{checklist.length}</span>
+              <span className="text-xs" style={{ color: 'var(--text-muted)' }}>{completedCount}/{checklist.length}</span>
             </div>
             {/* 진행 바 */}
-            <div className="w-full h-1.5 bg-slate-100 rounded-full mb-3">
+            <div className="w-full h-1.5 rounded-full mb-3" style={{ background: 'rgba(255,255,255,0.08)' }}>
               <div
-                className="h-full bg-emerald-500 rounded-full transition-all"
-                style={{ width: `${checklist.length ? (completedCount / checklist.length) * 100 : 0}%` }}
+                className="h-full rounded-full transition-all"
+                style={{
+                  width: `${checklist.length ? (completedCount / checklist.length) * 100 : 0}%`,
+                  background: 'linear-gradient(90deg, var(--purple), var(--mint))',
+                }}
               />
             </div>
             <div className="flex flex-col gap-2">
@@ -123,11 +159,13 @@ export default function OnboardingGuide({ lang, prefilledUrl, preloadedResult }:
                     type="checkbox"
                     checked={!!checked[i]}
                     onChange={() => setChecked(prev => ({ ...prev, [i]: !prev[i] }))}
-                    className="mt-0.5 accent-emerald-500 shrink-0"
+                    className="mt-0.5 shrink-0"
+                    style={{ accentColor: 'var(--mint)' }}
                   />
-                  <span className={`text-xs leading-relaxed transition-colors ${
-                    checked[i] ? 'line-through text-slate-300' : 'text-slate-600 group-hover:text-slate-800'
-                  }`}>
+                  <span
+                    className="text-xs leading-relaxed transition-colors"
+                    style={{ color: checked[i] ? 'var(--text-muted)' : 'var(--text)', textDecoration: checked[i] ? 'line-through' : 'none' }}
+                  >
                     {item}
                   </span>
                 </label>
@@ -137,16 +175,24 @@ export default function OnboardingGuide({ lang, prefilledUrl, preloadedResult }:
 
           {/* 핵심 개념 */}
           {result.key_concepts.length > 0 && (
-            <div className="md:col-span-2 bg-white rounded-2xl border border-slate-200 p-5">
+            <div className="glass-card md:col-span-2 rounded-2xl p-5">
               <div className="flex items-center gap-2 mb-3">
                 <span className="text-lg">📖</span>
-                <h3 className="text-sm font-bold text-slate-800">{t.onboarding.keyConcepts}</h3>
+                <h3 className="text-sm font-bold" style={{ color: 'var(--text)' }}>{t.onboarding.keyConcepts}</h3>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {result.key_concepts.map(concept => (
-                  <div key={concept.term} className="flex gap-2 bg-slate-50 rounded-xl px-3 py-2">
-                    <span className="font-mono text-xs font-bold text-slate-800 shrink-0 min-w-[80px]">{concept.term}</span>
-                    <span className="text-xs text-slate-500 leading-relaxed">{concept.definition}</span>
+                  <div
+                    key={concept.term}
+                    className="flex gap-2 rounded-xl px-3 py-2"
+                    style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border)' }}
+                  >
+                    <span className="font-mono text-xs font-bold shrink-0 min-w-[80px]" style={{ color: 'var(--purple-light)' }}>
+                      {concept.term}
+                    </span>
+                    <span className="text-xs leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+                      {concept.definition}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -160,20 +206,25 @@ export default function OnboardingGuide({ lang, prefilledUrl, preloadedResult }:
 
   if (loading && prefilledUrl) {
     return (
-      <div className="bg-white rounded-2xl border border-slate-200 p-12 flex flex-col items-center gap-4">
-        <div className="w-10 h-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
-        <p className="text-sm text-slate-500">{t.onboarding.analyzing}</p>
+      <div
+        className="glass-card rounded-2xl p-12 flex flex-col items-center gap-4"
+      >
+        <div
+          className="w-10 h-10 border-4 border-t-transparent rounded-full animate-spin"
+          style={{ borderColor: 'var(--purple) transparent var(--mint) transparent' }}
+        />
+        <p className="text-sm" style={{ color: 'var(--text-muted)' }}>{t.onboarding.analyzing}</p>
       </div>
     )
   }
 
   return (
     <div className="w-full max-w-xl mx-auto">
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-8">
+      <div className="glass-card rounded-2xl p-8">
         <div className="text-center mb-6">
           <div className="text-4xl mb-3">🚀</div>
-          <h2 className="text-xl font-bold text-slate-900">{t.onboarding.title}</h2>
-          <p className="text-sm text-slate-500 mt-2">{t.onboarding.subtitle}</p>
+          <h2 className="text-xl font-bold" style={{ color: 'var(--text)' }}>{t.onboarding.title}</h2>
+          <p className="text-sm mt-2" style={{ color: 'var(--text-muted)' }}>{t.onboarding.subtitle}</p>
         </div>
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
           <input
@@ -181,20 +232,23 @@ export default function OnboardingGuide({ lang, prefilledUrl, preloadedResult }:
             value={url}
             onChange={e => setUrl(e.target.value)}
             placeholder="https://github.com/owner/repo"
-            className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm
-                       focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent"
+            className="aurora-input w-full px-4 py-3 rounded-xl text-sm"
           />
           <button
             type="submit"
             disabled={loading || !url.trim()}
-            className="w-full py-3 bg-emerald-500 hover:bg-emerald-600 disabled:bg-slate-200
-                       text-white font-semibold rounded-xl transition-colors text-sm"
+            className="aurora-btn w-full py-3 rounded-xl font-semibold text-sm"
           >
             {loading ? t.onboarding.analyzing : t.onboarding.analyze}
           </button>
         </form>
         {error && (
-          <div className="mt-4 p-3 bg-red-50 text-red-600 rounded-xl text-sm">{error}</div>
+          <div
+            className="mt-4 p-3 rounded-xl text-sm"
+            style={{ background: 'rgba(239,68,68,0.1)', color: '#f87171', border: '1px solid rgba(239,68,68,0.3)' }}
+          >
+            {error}
+          </div>
         )}
       </div>
     </div>

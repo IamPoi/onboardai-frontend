@@ -7,11 +7,11 @@ interface Props {
   stats?: { class_count: number; edge_count: number }
 }
 
-const COLOR: Record<JobStatus, string> = {
-  pending:  'bg-yellow-50 border-yellow-300 text-yellow-800',
-  running:  'bg-blue-50 border-blue-300 text-blue-800',
-  complete: 'bg-green-50 border-green-300 text-green-800',
-  failed:   'bg-red-50 border-red-300 text-red-800',
+const STATUS_STYLE: Record<JobStatus, { bg: string; border: string; color: string }> = {
+  pending:  { bg: 'rgba(245, 158, 11, 0.08)', border: 'rgba(245, 158, 11, 0.3)', color: '#fbbf24' },
+  running:  { bg: 'rgba(124, 58, 237, 0.08)', border: 'rgba(124, 58, 237, 0.3)', color: 'var(--purple-light)' },
+  complete: { bg: 'rgba(52, 211, 153, 0.08)', border: 'rgba(52, 211, 153, 0.3)', color: 'var(--mint)' },
+  failed:   { bg: 'rgba(239, 68, 68, 0.08)',  border: 'rgba(239, 68, 68, 0.3)',  color: '#f87171' },
 }
 
 export default function StatusBanner({ status, error, stats }: Props) {
@@ -33,18 +33,25 @@ export default function StatusBanner({ status, error, stats }: Props) {
   }
 
   const displayError = parseErrorMessage(error)
+  const style = STATUS_STYLE[status]
 
   return (
-    <div className={`w-full max-w-2xl px-4 py-3 rounded-lg border text-sm ${COLOR[status]}`}>
+    <div
+      className="w-full max-w-2xl px-4 py-3 rounded-lg text-sm"
+      style={{ background: style.bg, border: `1px solid ${style.border}`, color: style.color }}
+    >
       <div className="flex items-center justify-between">
         <span className="flex items-center gap-2">
           {(status === 'pending' || status === 'running') && (
-            <span className="inline-block w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
+            <span
+              className="inline-block w-3 h-3 border-2 border-t-transparent rounded-full animate-spin"
+              style={{ borderColor: `${style.color} transparent transparent transparent` }}
+            />
           )}
           {MESSAGE[status]}
         </span>
         {stats && (
-          <span className="text-xs opacity-70">
+          <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
             {t.status.statsClasses(stats.class_count)} · {t.status.statsEdges(stats.edge_count)}
           </span>
         )}

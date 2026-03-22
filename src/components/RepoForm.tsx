@@ -78,7 +78,9 @@ export default function RepoForm({ onSubmit, loading }: Props) {
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-3 w-full max-w-2xl">
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex flex-col gap-3">
+      <div
+        className="glass-card rounded-xl p-4 flex flex-col gap-3"
+      >
         <div className="flex gap-2">
           <input
             type="text"
@@ -86,17 +88,12 @@ export default function RepoForm({ onSubmit, loading }: Props) {
             onChange={e => { setUrl(e.target.value); setError('') }}
             placeholder={t.form.placeholder}
             disabled={isDisabled}
-            className="flex-1 px-4 py-2.5 rounded-lg border border-slate-200 bg-slate-50 text-sm
-                       focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent
-                       disabled:opacity-50 disabled:cursor-not-allowed font-mono"
+            className="aurora-input flex-1 px-4 py-2.5 rounded-lg text-sm disabled:opacity-50 disabled:cursor-not-allowed"
           />
           <button
             type="submit"
             disabled={isDisabled}
-            className="px-5 py-2.5 bg-emerald-500 text-white rounded-lg text-sm font-medium
-                       hover:bg-emerald-600 active:bg-emerald-700
-                       disabled:opacity-50 disabled:cursor-not-allowed
-                       transition-colors whitespace-nowrap"
+            className="aurora-btn px-5 py-2.5 rounded-lg text-sm whitespace-nowrap"
           >
             {checking ? (
               <span className="flex items-center gap-1.5">
@@ -108,15 +105,21 @@ export default function RepoForm({ onSubmit, loading }: Props) {
         </div>
 
         {error && (
-          <p className={`text-xs ${error.startsWith('🔒') ? 'text-amber-600' : 'text-red-500'}`}>
+          <p
+            className="text-xs px-3 py-2 rounded-lg"
+            style={{
+              background: error.startsWith('🔒') ? 'rgba(245, 158, 11, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+              border: `1px solid ${error.startsWith('🔒') ? 'rgba(245, 158, 11, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`,
+              color: error.startsWith('🔒') ? '#fbbf24' : '#f87171',
+            }}
+          >
             {error}
           </p>
         )}
 
-        {/* public 안내 메모 */}
-        <p className="text-[11px] text-slate-400 flex items-center gap-1">
+        <p className="text-[11px] flex items-center gap-1" style={{ color: 'var(--text-muted)' }}>
           <span>ℹ️</span>
-          GitHub / GitLab <strong className="font-medium text-slate-500">Public</strong> 저장소만 분석 가능합니다.
+          GitHub / GitLab <strong className="font-medium" style={{ color: 'rgba(255,255,255,0.5)' }}>Public</strong> 저장소만 분석 가능합니다.
         </p>
       </div>
     </form>
