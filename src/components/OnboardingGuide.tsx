@@ -114,10 +114,11 @@ function StripeCheckoutForm({
 }
 
 // ── 풍부한 온보딩 가이드 결과 ───────────────────────────────────────────────────
-export function OnboardingResult({ result, repoUrl, onReset }: {
+export function OnboardingResult({ result, repoUrl, onReset, hideReset }: {
   result: OnboardingResult
   repoUrl: string
   onReset: () => void
+  hideReset?: boolean
 }) {
   const [checked, setChecked] = useState<Record<number, boolean>>({})
   const modules = result.core_modules ?? result.top_classes ?? []
@@ -145,13 +146,15 @@ export function OnboardingResult({ result, repoUrl, onReset }: {
           >
             📄 Download PDF
           </button>
-          <button
-            onClick={onReset}
-            className="text-xs transition-colors hover:opacity-100"
-            style={{ color: 'var(--text-muted)' }}
-          >
-            Reset
-          </button>
+          {!hideReset && (
+            <button
+              onClick={onReset}
+              className="text-xs transition-colors hover:opacity-100"
+              style={{ color: 'var(--text-muted)' }}
+            >
+              Reset
+            </button>
+          )}
         </div>
       </div>
 
@@ -363,14 +366,14 @@ export function OnboardingResult({ result, repoUrl, onReset }: {
         )}
 
         {/* 핵심 개념 */}
-        {result.key_concepts.length > 0 && (
+        {(result.key_concepts?.length ?? 0) > 0 && (
           <div className="glass-card md:col-span-2 rounded-2xl p-5">
             <div className="flex items-center gap-2 mb-3">
               <span className="text-lg">📖</span>
               <h3 className="text-sm font-bold" style={{ color: 'var(--text)' }}>Key Concepts</h3>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {result.key_concepts.map(concept => (
+              {(result.key_concepts ?? []).map(concept => (
                 <div
                   key={concept.term}
                   className="flex gap-2 rounded-xl px-3 py-2"

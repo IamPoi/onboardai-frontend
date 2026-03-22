@@ -426,6 +426,7 @@ function OnboardingDetail({ result, repoName }: { result: Record<string, unknown
       result={onboarding}
       repoUrl={repoName}
       onReset={() => {}}
+      hideReset
     />
   )
 }
