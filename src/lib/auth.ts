@@ -12,7 +12,7 @@ export interface UserInfo {
 
 export interface HistoryItem {
   id: number
-  type: 'code' | 'project'
+  type: 'code' | 'project' | 'onboarding'
   target_name: string
   tech_stack: string | null
   created_at: string

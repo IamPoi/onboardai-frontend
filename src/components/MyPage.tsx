@@ -4,6 +4,8 @@ import {
   getToken, changePasswordApi, updateProfileApi, getHistoryApi, getHistoryDetailApi,
   type UserInfo, type HistoryItem, type HistoryDetail,
 } from '../lib/auth'
+import { downloadPdf } from '../lib/pdf'
+import type { OnboardingResult } from '../lib/api'
 
 type MyPageTab = 'profile' | 'history'
 
@@ -321,10 +323,12 @@ export default function MyPage({ user, onClose, onLogout, onUserUpdate }: Props)
                       style={
                         item.type === 'code'
                           ? { background: 'rgba(96,165,250,0.15)', color: '#60a5fa', border: '1px solid rgba(96,165,250,0.3)' }
+                          : item.type === 'onboarding'
+                          ? { background: 'rgba(124,58,237,0.15)', color: 'var(--purple-light)', border: '1px solid rgba(124,58,237,0.3)' }
                           : { background: 'rgba(52,211,153,0.15)', color: 'var(--mint)', border: '1px solid rgba(52,211,153,0.3)' }
                       }
                     >
-                      {item.type === 'code' ? mp.historyCode : mp.historyProject}
+                      {item.type === 'code' ? mp.historyCode : item.type === 'onboarding' ? '🤖 온보딩' : mp.historyProject}
                     </span>
                     <span className="text-sm font-medium truncate flex-1" style={{ color: 'var(--text)' }}>{item.target_name}</span>
                     {item.tech_stack && (
@@ -344,6 +348,9 @@ export default function MyPage({ user, onClose, onLogout, onUserUpdate }: Props)
                       {detailLoading && <p>로딩 중...</p>}
                       {!detailLoading && detail && item.type === 'code' && (
                         <CodeDetail result={detail.result} />
+                      )}
+                      {!detailLoading && detail && item.type === 'onboarding' && (
+                        <OnboardingDetail result={detail.result} repoName={item.target_name} />
                       )}
                       {!detailLoading && detail && item.type === 'project' && (
                         <ProjectDetail result={detail.result} />
@@ -406,6 +413,59 @@ function ProjectDetail({ result }: { result: Record<string, unknown> }) {
         <div className="flex gap-4">
           <div><span className="font-semibold" style={{ color: 'var(--text)' }}>클래스:</span> {stats.class_count}개</div>
           <div><span className="font-semibold" style={{ color: 'var(--text)' }}>호출:</span> {stats.edge_count}개</div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function OnboardingDetail({ result, repoName }: { result: Record<string, unknown>; repoName: string }) {
+  const onboarding = result as unknown as OnboardingResult
+  const modules = onboarding.core_modules ?? onboarding.top_classes ?? []
+  const checklist = onboarding.onboarding_checklist ?? (onboarding.onboarding_tip ? onboarding.onboarding_tip.split('\n').filter(Boolean) : [])
+
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex items-center justify-between">
+        <p className="font-semibold text-xs" style={{ color: 'var(--purple-light)' }}>AI 온보딩 가이드</p>
+        <button
+          onClick={() => downloadPdf(repoName, { nodes: [], edges: [], stats: { class_count: 0, edge_count: 0 }, frameworks: [] }, onboarding)}
+          className="text-xs px-2.5 py-1 rounded-lg font-medium transition-all hover:opacity-80"
+          style={{ background: 'rgba(52,211,153,0.15)', color: 'var(--mint)', border: '1px solid rgba(52,211,153,0.3)' }}
+        >
+          📄 PDF 다운로드
+        </button>
+      </div>
+      {onboarding.project_overview && (
+        <div>
+          <span className="font-semibold" style={{ color: 'var(--text)' }}>프로젝트 개요:</span>
+          <p className="mt-0.5 leading-relaxed">{onboarding.project_overview.summary}</p>
+        </div>
+      )}
+      <div>
+        <span className="font-semibold" style={{ color: 'var(--text)' }}>아키텍처:</span>
+        <p className="mt-0.5 leading-relaxed">{onboarding.architecture_summary}</p>
+      </div>
+      {modules.length > 0 && (
+        <div>
+          <span className="font-semibold" style={{ color: 'var(--text)' }}>핵심 모듈 ({modules.length}개):</span>
+          <ul className="mt-1 space-y-0.5">
+            {modules.slice(0, 4).map((m, i) => (
+              <li key={i} className="flex items-center gap-1.5">
+                <span className="font-mono" style={{ color: 'var(--purple-light)' }}>{m.name}</span>
+                <span style={{ color: 'var(--text-muted)' }}>— {m.role.slice(0, 60)}{m.role.length > 60 ? '...' : ''}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {checklist.length > 0 && (
+        <div>
+          <span className="font-semibold" style={{ color: 'var(--text)' }}>체크리스트 ({checklist.length}개):</span>
+          <ul className="mt-1 space-y-0.5 list-disc list-inside">
+            {checklist.slice(0, 3).map((item, i) => <li key={i}>{item}</li>)}
+            {checklist.length > 3 && <li style={{ color: 'var(--text-muted)' }}>+{checklist.length - 3}개 더...</li>}
+          </ul>
         </div>
       )}
     </div>

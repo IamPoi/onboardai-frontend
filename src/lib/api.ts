@@ -36,10 +36,61 @@ export interface GraphResult {
 }
 
 export interface OnboardingResult {
+  // v2 풍부한 콘텐츠
+  project_overview?: {
+    summary: string
+    tech_stack: { name: string; purpose: string }[]
+  }
   architecture_summary: string
-  top_classes: { name: string; layer: string; role: string; why_important: string }[]
+  getting_started?: {
+    overview: string
+    steps: { step: number; title: string; command: string; description: string }[]
+  }
+  core_modules?: {
+    name: string; layer: string; role: string; why_important: string; key_methods?: string[]
+  }[]
+  feature_walkthrough?: {
+    feature_name: string; description: string; steps: string[]
+  }
   key_concepts: { term: string; definition: string }[]
+  onboarding_checklist?: string[]
+  first_contribution?: {
+    title: string; description: string; relevant_files: string[]
+  }
+  // v1 하위 호환
+  top_classes: { name: string; layer: string; role: string; why_important: string }[]
   onboarding_tip: string
+}
+
+export interface PaymentIntentResponse {
+  client_secret: string
+  payment_intent_id: string
+  amount: number
+}
+
+export async function createPaymentIntent(repoUrl: string, token: string): Promise<PaymentIntentResponse> {
+  const res = await fetch(`${BASE_URL}/payments/create-intent`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ repo_url: repoUrl }),
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}))
+    throw new Error(err.detail ?? `HTTP ${res.status}`)
+  }
+  return res.json()
+}
+
+export async function verifyPayment(paymentIntentId: string, token: string): Promise<void> {
+  const res = await fetch(`${BASE_URL}/payments/verify`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ payment_intent_id: paymentIntentId }),
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}))
+    throw new Error(err.detail ?? `결제 검증 실패`)
+  }
 }
 
 export interface JobResponse {
@@ -131,15 +182,17 @@ export async function analyzeCode(
   return res.json()
 }
 
-export async function onboardingApi(repoUrl: string, lang: string): Promise<OnboardingResult> {
+export async function onboardingApi(repoUrl: string, lang: string, token?: string): Promise<OnboardingResult> {
   // 90초 타임아웃 (cold start + clone + Groq API 시간 고려)
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(), 90_000)
 
   try {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+    if (token) headers['Authorization'] = `Bearer ${token}`
     const res = await fetch(`${BASE_URL}/onboarding`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify({ repo_url: repoUrl, lang }),
       signal: controller.signal,
     })
