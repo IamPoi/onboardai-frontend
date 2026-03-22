@@ -59,7 +59,11 @@ export default function AuthModal({ onClose, onSuccess }: Props) {
         onSuccess(token, email.trim())
       } else {
         const res = await registerApi(email.trim(), password, name.trim(), birthDate || undefined)
-        if (res.needs_verification) {
+        if (!res.needs_verification && res.access_token) {
+          // 이메일 인증 미설정 환경 — 바로 로그인
+          saveToken(res.access_token)
+          onSuccess(res.access_token, email.trim())
+        } else {
           setPendingEmail(res.email)
           setStep('otp')
           setResendCooldown(60)

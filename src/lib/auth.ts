@@ -43,7 +43,7 @@ export async function registerApi(
   password: string,
   name?: string,
   birthDate?: string,
-): Promise<{ needs_verification: true; email: string }> {
+): Promise<{ needs_verification: boolean; email: string; access_token?: string }> {
   const res = await fetch(`${BASE_URL}/auth/register`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -51,7 +51,7 @@ export async function registerApi(
   })
   const data = await res.json().catch(() => ({}))
   if (!res.ok) throw new Error(data.detail ?? `HTTP ${res.status}`)
-  return data as { needs_verification: true; email: string }
+  return data as { needs_verification: boolean; email: string; access_token?: string }
 }
 
 export async function verifyEmailApi(email: string, otp: string): Promise<string> {
