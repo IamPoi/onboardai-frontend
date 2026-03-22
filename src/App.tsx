@@ -443,22 +443,24 @@ export default function App() {
                 </button>
               ))}
 
-              {/* PDF */}
-              <button
-                onClick={() => downloadPdf(state.repoUrl, state.graph, inlineOnboarding.phase === 'done' ? inlineOnboarding.result : null)}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 10,
-                  padding: '10px 14px', borderRadius: 12, fontSize: '0.82rem', fontWeight: 500,
-                  textAlign: 'left', cursor: 'pointer', transition: 'all 0.15s',
-                  background: 'var(--surface)', border: '1px solid var(--border)',
-                  color: 'var(--text-muted)', marginTop: 4,
-                }}
-                onMouseEnter={e => (e.currentTarget.style.background = 'var(--surface-hover)')}
-                onMouseLeave={e => (e.currentTarget.style.background = 'var(--surface)')}
-              >
-                <span style={{ flexShrink: 0 }}>↓</span>
-                <span>PDF 내보내기</span>
-              </button>
+              {/* PDF — 온보딩 가이드 완료 후에만 표시 */}
+              {inlineOnboarding.phase === 'done' && (
+                <button
+                  onClick={() => downloadPdf(state.repoUrl, state.graph, inlineOnboarding.result)}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 10,
+                    padding: '10px 14px', borderRadius: 12, fontSize: '0.82rem', fontWeight: 500,
+                    textAlign: 'left', cursor: 'pointer', transition: 'all 0.15s',
+                    background: 'rgba(52,211,153,0.1)', border: '1px solid rgba(52,211,153,0.3)',
+                    color: 'var(--mint)', marginTop: 4,
+                  }}
+                  onMouseEnter={e => (e.currentTarget.style.background = 'rgba(52,211,153,0.18)')}
+                  onMouseLeave={e => (e.currentTarget.style.background = 'rgba(52,211,153,0.1)')}
+                >
+                  <span style={{ flexShrink: 0 }}>↓</span>
+                  <span>PDF 내보내기</span>
+                </button>
+              )}
 
               {/* Legend */}
               <div style={{ padding: '12px 14px', borderRadius: 14, background: 'var(--surface)', border: '1px solid var(--border)', marginTop: 4 }}>
