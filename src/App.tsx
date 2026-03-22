@@ -13,6 +13,7 @@ import AdBanner from './components/AdBanner'
 import IssuePanel from './components/IssuePanel'
 import { submitRepo, pollJob, analyzeCode, onboardingApi, type JobResponse, type GraphResult, type CodeAnalysisResult as CodeAnalysisData, type OnboardingResult } from './lib/api'
 import { getToken, meApi, clearToken, type UserInfo } from './lib/auth'
+import { downloadPdf } from './lib/pdf'
 import { useLang } from './contexts/LangContext'
 
 type ResultSection = 'graph' | 'issues' | 'guide'
@@ -409,8 +410,23 @@ export default function App() {
                 </button>
               ))}
 
+              {/* PDF 다운로드 버튼 */}
+              <button
+                onClick={() => downloadPdf(
+                  state.repoUrl,
+                  state.graph,
+                  inlineOnboarding.phase === 'done' ? inlineOnboarding.result : null,
+                )}
+                className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium
+                           bg-white text-slate-600 border border-slate-200 hover:border-emerald-300
+                           hover:text-emerald-700 transition-all mt-2"
+              >
+                <span className="text-base shrink-0">📄</span>
+                <span className="truncate">PDF 내보내기</span>
+              </button>
+
               {/* 레이어 범례 — 사이드바 하단 (lg 이상) */}
-              <div className="hidden lg:flex flex-col gap-1.5 px-3 py-2.5 mt-auto bg-white rounded-xl border border-slate-200">
+              <div className="hidden lg:flex flex-col gap-1.5 px-3 py-2.5 mt-2 bg-white rounded-xl border border-slate-200">
                 <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Legend</span>
                 {LEGEND_LAYERS.map(({ key, bg, border, color }) => (
                   <span

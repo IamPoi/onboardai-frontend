@@ -43,7 +43,7 @@ export async function registerApi(
   password: string,
   name?: string,
   birthDate?: string,
-): Promise<string> {
+): Promise<{ needs_verification: true; email: string }> {
   const res = await fetch(`${BASE_URL}/auth/register`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -51,7 +51,30 @@ export async function registerApi(
   })
   const data = await res.json().catch(() => ({}))
   if (!res.ok) throw new Error(data.detail ?? `HTTP ${res.status}`)
+  return data as { needs_verification: true; email: string }
+}
+
+export async function verifyEmailApi(email: string, otp: string): Promise<string> {
+  const res = await fetch(`${BASE_URL}/auth/verify-email`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, otp }),
+  })
+  const data = await res.json().catch(() => ({}))
+  if (!res.ok) throw new Error(data.detail ?? `HTTP ${res.status}`)
   return data.access_token as string
+}
+
+export async function resendOtpApi(email: string): Promise<void> {
+  const res = await fetch(`${BASE_URL}/auth/resend-otp`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email }),
+  })
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}))
+    throw new Error(data.detail ?? `HTTP ${res.status}`)
+  }
 }
 
 export async function loginApi(email: string, password: string): Promise<string> {
