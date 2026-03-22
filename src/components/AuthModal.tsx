@@ -24,6 +24,7 @@ export default function AuthModal({ onClose, onSuccess }: Props) {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [resendCooldown, setResendCooldown] = useState(0)
+  const [otpSource, setOtpSource] = useState<'register' | 'login'>('register')
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
@@ -63,6 +64,7 @@ export default function AuthModal({ onClose, onSuccess }: Props) {
           onSuccess(res.access_token, email.trim())
         } else {
           setPendingEmail(res.email)
+          setOtpSource('register')
           setStep('otp')
           setResendCooldown(60)
         }
@@ -75,6 +77,7 @@ export default function AuthModal({ onClose, onSuccess }: Props) {
         setError(t.auth.errors.invalidCredentials)
       } else if (msg.includes('인증이 필요')) {
         setPendingEmail(email.trim())
+        setOtpSource('login')
         setStep('otp')
         setResendCooldown(60)
         await resendOtpApi(email.trim()).catch(() => {})
@@ -134,6 +137,13 @@ export default function AuthModal({ onClose, onSuccess }: Props) {
           onClick={e => e.stopPropagation()}
         >
           <div className="p-6">
+            <button
+              onClick={() => { setStep('form'); setOtp(''); setError('') }}
+              className="flex items-center gap-1.5 text-xs mb-5 transition-colors hover:opacity-100"
+              style={{ color: 'var(--text-muted)' }}
+            >
+              ← Back
+            </button>
             <div className="text-center mb-6">
               <div
                 className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-3"
@@ -142,10 +152,17 @@ export default function AuthModal({ onClose, onSuccess }: Props) {
                 <span className="text-2xl">📧</span>
               </div>
               <h2 className="text-lg font-bold" style={{ color: 'var(--text)' }}>Email Verification</h2>
-              <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>
-                Enter the 6-digit code sent to<br />
-                <span className="font-medium" style={{ color: 'var(--text)' }}>{pendingEmail}</span>
-              </p>
+              {otpSource === 'login' && (
+                <p className="text-xs mt-2 px-3 py-2 rounded-lg" style={{ background: 'rgba(251,191,36,0.1)', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.2)' }}>
+                  Your account hasn't been verified yet. Enter the code sent to your email to complete sign-up.
+                </p>
+              )}
+              {otpSource === 'register' && (
+                <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>
+                  Enter the 6-digit code sent to<br />
+                  <span className="font-medium" style={{ color: 'var(--text)' }}>{pendingEmail}</span>
+                </p>
+              )}
             </div>
 
             <form onSubmit={handleVerifyOtp} className="flex flex-col gap-3">

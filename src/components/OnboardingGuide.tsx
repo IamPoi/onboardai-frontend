@@ -174,9 +174,9 @@ export function OnboardingResult({ result, repoUrl, onReset, hideReset }: {
             <p className="text-sm leading-relaxed mb-3 relative" style={{ color: 'var(--text)' }}>
               {result.project_overview.summary}
             </p>
-            {result.project_overview.tech_stack.length > 0 && (
+            {(result.project_overview.tech_stack?.length ?? 0) > 0 && (
               <div className="flex flex-wrap gap-2 relative">
-                {result.project_overview.tech_stack.map(t => (
+                {(result.project_overview.tech_stack ?? []).map(t => (
                   <div
                     key={t.name}
                     className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs"
@@ -228,7 +228,7 @@ export function OnboardingResult({ result, repoUrl, onReset, hideReset }: {
               {result.getting_started.overview}
             </p>
             <div className="flex flex-col gap-2">
-              {result.getting_started.steps.map(s => (
+              {(result.getting_started.steps ?? []).map(s => (
                 <div key={s.step} className="flex gap-3 items-start">
                   <span
                     className="w-5 h-5 rounded-full font-bold text-xs flex items-center justify-center shrink-0 mt-0.5"
@@ -352,7 +352,7 @@ export function OnboardingResult({ result, repoUrl, onReset, hideReset }: {
               {result.feature_walkthrough.description}
             </p>
             <div className="flex flex-col gap-1.5">
-              {result.feature_walkthrough.steps.map((step, i) => (
+              {(result.feature_walkthrough.steps ?? []).map((step, i) => (
                 <div key={i} className="flex items-start gap-2 text-xs" style={{ color: 'var(--text)' }}>
                   <span className="shrink-0 w-4 h-4 rounded-full bg-mint/20 flex items-center justify-center text-[9px] font-bold mt-0.5"
                     style={{ background: 'rgba(52,211,153,0.2)', color: 'var(--mint)' }}>
@@ -406,9 +406,9 @@ export function OnboardingResult({ result, repoUrl, onReset, hideReset }: {
             <p className="text-xs leading-relaxed mb-3" style={{ color: 'var(--text-muted)' }}>
               {result.first_contribution.description}
             </p>
-            {result.first_contribution.relevant_files.length > 0 && (
+            {(result.first_contribution.relevant_files?.length ?? 0) > 0 && (
               <div className="flex flex-wrap gap-1.5">
-                {result.first_contribution.relevant_files.map(f => (
+                {(result.first_contribution.relevant_files ?? []).map(f => (
                   <span
                     key={f}
                     className="text-[10px] px-2 py-0.5 rounded font-mono"
