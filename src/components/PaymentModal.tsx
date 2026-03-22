@@ -4,11 +4,11 @@ interface Props {
 }
 
 const FEATURES = [
-  { icon: '🏗️', label: 'AST 기반 아키텍처 분석' },
-  { icon: '🤖', label: 'AI 온보딩 가이드 자동 생성' },
-  { icon: '🔑', label: '핵심 클래스 & 의존성 설명' },
-  { icon: '📖', label: '핵심 용어 사전 자동 작성' },
-  { icon: '📄', label: 'PDF 리포트 내보내기 (준비 중)', disabled: true },
+  { icon: '🏗️', label: 'AST-based architecture analysis' },
+  { icon: '🤖', label: 'AI onboarding guide generation' },
+  { icon: '🔑', label: 'Key class & dependency explanation' },
+  { icon: '📖', label: 'Key concepts glossary' },
+  { icon: '📄', label: 'PDF report export (coming soon)', disabled: true },
 ]
 
 export default function PaymentModal({ onClose, onConfirm }: Props) {
@@ -39,7 +39,7 @@ export default function PaymentModal({ onClose, onConfirm }: Props) {
               >
                 Premium
               </p>
-              <h2 className="text-xl font-bold mt-0.5" style={{ color: 'var(--text)' }}>온보딩 가이드 생성</h2>
+              <h2 className="text-xl font-bold mt-0.5" style={{ color: 'var(--text)' }}>Generate Onboarding Guide</h2>
             </div>
             <button
               onClick={onClose}
@@ -52,7 +52,7 @@ export default function PaymentModal({ onClose, onConfirm }: Props) {
           {/* 가격 */}
           <div className="mt-4 flex items-end gap-1">
             <span className="text-4xl font-bold" style={{ color: 'var(--text)' }}>$3</span>
-            <span className="text-sm mb-1" style={{ color: 'var(--text-muted)' }}>/ 회</span>
+            <span className="text-sm mb-1" style={{ color: 'var(--text-muted)' }}>/ use</span>
           </div>
         </div>
 
@@ -62,7 +62,7 @@ export default function PaymentModal({ onClose, onConfirm }: Props) {
             className="text-xs font-semibold uppercase tracking-wider mb-3"
             style={{ color: 'var(--text-muted)' }}
           >
-            포함 기능
+            Included features
           </p>
           <ul className="flex flex-col gap-2.5">
             {FEATURES.map(f => (
@@ -78,7 +78,7 @@ export default function PaymentModal({ onClose, onConfirm }: Props) {
                     className="ml-auto text-xs px-2 py-0.5 rounded-full"
                     style={{ background: 'rgba(255,255,255,0.06)', color: 'var(--text-muted)', border: '1px solid var(--border)' }}
                   >
-                    준비 중
+                    Coming soon
                   </span>
                 )}
               </li>
@@ -93,7 +93,7 @@ export default function PaymentModal({ onClose, onConfirm }: Props) {
               onClick={onConfirm}
               className="aurora-btn w-full py-3.5 rounded-xl font-bold text-sm"
             >
-              지금 무료로 체험하기 →
+              Try for free now →
             </button>
           </div>
           <button
@@ -101,10 +101,10 @@ export default function PaymentModal({ onClose, onConfirm }: Props) {
             className="w-full py-2.5 text-sm transition-colors"
             style={{ color: 'var(--text-muted)' }}
           >
-            취소
+            Cancel
           </button>
           <p className="text-center text-xs" style={{ color: 'var(--text-muted)' }}>
-            🔒 결제 시스템 준비 중 — 현재 무료 체험 제공
+            🔒 Payment system coming soon — Free trial available
           </p>
         </div>
       </div>

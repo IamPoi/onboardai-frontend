@@ -25,8 +25,8 @@ export default function IssuePanel({ issues, isPaid, onUpgrade }: Props) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center">
         <span className="text-4xl mb-3">✅</span>
-        <p className="font-medium" style={{ color: 'var(--mint)' }}>이슈가 발견되지 않았습니다</p>
-        <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>분석된 코드에서 탐지된 문제가 없습니다</p>
+        <p className="font-medium" style={{ color: 'var(--mint)' }}>No issues found</p>
+        <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>No problems detected in the analyzed code</p>
       </div>
     )
   }
@@ -50,10 +50,10 @@ export default function IssuePanel({ issues, isPaid, onUpgrade }: Props) {
       <div className="glass-card rounded-xl p-4">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-sm font-semibold" style={{ color: 'var(--text)' }}>
-            총 {issues.length}개 이슈 발견
+            {issues.length} issues found
           </h3>
           {!isPaid && (
-            <span className="text-xs" style={{ color: 'var(--text-muted)' }}>무료 플랜: 상위 {FREE_LIMIT}개 표시</span>
+            <span className="text-xs" style={{ color: 'var(--text-muted)' }}>Free plan: showing top {FREE_LIMIT}</span>
           )}
         </div>
 
@@ -67,7 +67,7 @@ export default function IssuePanel({ issues, isPaid, onUpgrade }: Props) {
                 : { background: 'rgba(255,255,255,0.06)', color: 'var(--text-muted)', border: '1px solid var(--border)' }
             }
           >
-            전체 {issues.length}
+            All {issues.length}
           </button>
           {(Object.keys(SEVERITY_CONFIG) as Array<keyof typeof SEVERITY_CONFIG>)
             .filter(s => countBySeverity[s])
@@ -158,7 +158,7 @@ export default function IssuePanel({ issues, isPaid, onUpgrade }: Props) {
                   className="px-4 py-3"
                   style={{ borderTop: '1px solid var(--border)', background: 'rgba(255,255,255,0.02)' }}
                 >
-                  <p className="text-xs font-semibold mb-1.5" style={{ color: 'var(--mint)' }}>💡 수정 방법</p>
+                  <p className="text-xs font-semibold mb-1.5" style={{ color: 'var(--mint)' }}>💡 How to fix</p>
                   <p className="text-xs leading-relaxed whitespace-pre-line" style={{ color: 'var(--text-muted)' }}>
                     {issue.suggestion}
                   </p>
@@ -181,7 +181,7 @@ export default function IssuePanel({ issues, isPaid, onUpgrade }: Props) {
                   <div className="flex gap-2">
                     <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: 'rgba(249,115,22,0.15)', color: '#fb923c' }}>Critical</span>
                   </div>
-                  <p className="text-sm mt-1" style={{ color: 'var(--text)' }}>숨겨진 이슈가 있습니다...</p>
+                  <p className="text-sm mt-1" style={{ color: 'var(--text)' }}>More issues hidden...</p>
                   <p className="text-xs mt-0.5 font-mono" style={{ color: 'var(--text-muted)' }}>src/main/Service.java:42</p>
                 </div>
               </div>
@@ -192,14 +192,14 @@ export default function IssuePanel({ issues, isPaid, onUpgrade }: Props) {
               style={{ background: 'rgba(5,5,16,0.85)', backdropFilter: 'blur(8px)', border: '1px solid var(--border-bright)' }}
             >
               <p className="text-sm font-semibold mb-1" style={{ color: 'var(--text)' }}>
-                🔒 {hiddenCount}개 이슈가 더 있습니다
+                🔒 {hiddenCount} more issues
               </p>
-              <p className="text-xs mb-3" style={{ color: 'var(--text-muted)' }}>온보딩 가이드 결제 시 전체 이슈를 확인하세요</p>
+              <p className="text-xs mb-3" style={{ color: 'var(--text-muted)' }}>Unlock all issues with the onboarding guide</p>
               <button
                 onClick={onUpgrade}
                 className="aurora-btn px-4 py-2 rounded-lg text-xs font-semibold"
               >
-                전체 이슈 보기 →
+                View all issues →
               </button>
             </div>
           </div>

@@ -108,7 +108,7 @@ export default function MyPage({ user, onClose, onLogout, onUserUpdate }: Props)
   }
 
   const joinedDate = user.created_at
-    ? new Date(user.created_at).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })
+    ? new Date(user.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
     : '-'
 
   const inputClass = "aurora-input w-full px-3 py-2 text-sm rounded-lg"
@@ -328,14 +328,14 @@ export default function MyPage({ user, onClose, onLogout, onUserUpdate }: Props)
                           : { background: 'rgba(52,211,153,0.15)', color: 'var(--mint)', border: '1px solid rgba(52,211,153,0.3)' }
                       }
                     >
-                      {item.type === 'code' ? mp.historyCode : item.type === 'onboarding' ? '🤖 온보딩' : mp.historyProject}
+                      {item.type === 'code' ? mp.historyCode : item.type === 'onboarding' ? '🤖 Onboarding' : mp.historyProject}
                     </span>
                     <span className="text-sm font-medium truncate flex-1" style={{ color: 'var(--text)' }}>{item.target_name}</span>
                     {item.tech_stack && (
                       <span className="text-xs shrink-0" style={{ color: 'var(--text-muted)' }}>{item.tech_stack}</span>
                     )}
                     <span className="text-xs shrink-0" style={{ color: 'var(--text-muted)' }}>
-                      {new Date(item.created_at).toLocaleDateString('ko-KR')}
+                      {new Date(item.created_at).toLocaleDateString('en-US')}
                     </span>
                     <span className="text-xs" style={{ color: 'var(--text-muted)' }}>{expandedId === item.id ? '▲' : '▼'}</span>
                   </button>
@@ -345,7 +345,7 @@ export default function MyPage({ user, onClose, onLogout, onUserUpdate }: Props)
                       className="px-4 py-4 text-xs"
                       style={{ borderTop: '1px solid var(--border)', background: 'rgba(255,255,255,0.02)', color: 'var(--text-muted)' }}
                     >
-                      {detailLoading && <p>로딩 중...</p>}
+                      {detailLoading && <p>Loading...</p>}
                       {!detailLoading && detail && item.type === 'code' && (
                         <CodeDetail result={detail.result} />
                       )}
@@ -370,21 +370,21 @@ export default function MyPage({ user, onClose, onLogout, onUserUpdate }: Props)
 function CodeDetail({ result }: { result: Record<string, unknown> }) {
   return (
     <div className="flex flex-col gap-2">
-      <div><span className="font-semibold" style={{ color: 'var(--text)' }}>언어:</span> {String(result.language ?? '-')}</div>
+      <div><span className="font-semibold" style={{ color: 'var(--text)' }}>Language:</span> {String(result.language ?? '-')}</div>
       <div>
-        <span className="font-semibold" style={{ color: 'var(--text)' }}>요약:</span>
+        <span className="font-semibold" style={{ color: 'var(--text)' }}>Summary:</span>
         <p className="mt-1 leading-relaxed">{String(result.summary ?? '-')}</p>
       </div>
       {Array.isArray(result.patterns) && result.patterns.length > 0 && (
         <div>
-          <span className="font-semibold" style={{ color: 'var(--text)' }}>주요 패턴:</span>
+          <span className="font-semibold" style={{ color: 'var(--text)' }}>Key Patterns:</span>
           <ul className="mt-1 list-disc list-inside space-y-0.5">
             {(result.patterns as string[]).slice(0, 3).map((p, i) => <li key={i}>{p}</li>)}
           </ul>
         </div>
       )}
       {Array.isArray(result.recommendations) && (
-        <div>추천 개선사항 {(result.recommendations as unknown[]).length}개</div>
+        <div>{(result.recommendations as unknown[]).length} recommendations</div>
       )}
     </div>
   )
@@ -397,7 +397,7 @@ function ProjectDetail({ result }: { result: Record<string, unknown> }) {
     <div className="flex flex-col gap-2">
       {frameworks && frameworks.length > 0 && (
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="font-semibold" style={{ color: 'var(--text)' }}>프레임워크:</span>
+          <span className="font-semibold" style={{ color: 'var(--text)' }}>Framework:</span>
           {frameworks.map(fw => (
             <span
               key={fw}
@@ -411,8 +411,8 @@ function ProjectDetail({ result }: { result: Record<string, unknown> }) {
       )}
       {stats && (
         <div className="flex gap-4">
-          <div><span className="font-semibold" style={{ color: 'var(--text)' }}>클래스:</span> {stats.class_count}개</div>
-          <div><span className="font-semibold" style={{ color: 'var(--text)' }}>호출:</span> {stats.edge_count}개</div>
+          <div><span className="font-semibold" style={{ color: 'var(--text)' }}>Classes:</span> {stats.class_count}</div>
+          <div><span className="font-semibold" style={{ color: 'var(--text)' }}>Calls:</span> {stats.edge_count}</div>
         </div>
       )}
     </div>
@@ -427,28 +427,28 @@ function OnboardingDetail({ result, repoName }: { result: Record<string, unknown
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
-        <p className="font-semibold text-xs" style={{ color: 'var(--purple-light)' }}>AI 온보딩 가이드</p>
+        <p className="font-semibold text-xs" style={{ color: 'var(--purple-light)' }}>AI Onboarding Guide</p>
         <button
           onClick={() => downloadPdf(repoName, { nodes: [], edges: [], stats: { class_count: 0, edge_count: 0 }, frameworks: [] }, onboarding)}
           className="text-xs px-2.5 py-1 rounded-lg font-medium transition-all hover:opacity-80"
           style={{ background: 'rgba(52,211,153,0.15)', color: 'var(--mint)', border: '1px solid rgba(52,211,153,0.3)' }}
         >
-          📄 PDF 다운로드
+          📄 Download PDF
         </button>
       </div>
       {onboarding.project_overview && (
         <div>
-          <span className="font-semibold" style={{ color: 'var(--text)' }}>프로젝트 개요:</span>
+          <span className="font-semibold" style={{ color: 'var(--text)' }}>Project Overview:</span>
           <p className="mt-0.5 leading-relaxed">{onboarding.project_overview.summary}</p>
         </div>
       )}
       <div>
-        <span className="font-semibold" style={{ color: 'var(--text)' }}>아키텍처:</span>
+        <span className="font-semibold" style={{ color: 'var(--text)' }}>Architecture:</span>
         <p className="mt-0.5 leading-relaxed">{onboarding.architecture_summary}</p>
       </div>
       {modules.length > 0 && (
         <div>
-          <span className="font-semibold" style={{ color: 'var(--text)' }}>핵심 모듈 ({modules.length}개):</span>
+          <span className="font-semibold" style={{ color: 'var(--text)' }}>Core Modules ({modules.length}):</span>
           <ul className="mt-1 space-y-0.5">
             {modules.slice(0, 4).map((m, i) => (
               <li key={i} className="flex items-center gap-1.5">
@@ -461,10 +461,10 @@ function OnboardingDetail({ result, repoName }: { result: Record<string, unknown
       )}
       {checklist.length > 0 && (
         <div>
-          <span className="font-semibold" style={{ color: 'var(--text)' }}>체크리스트 ({checklist.length}개):</span>
+          <span className="font-semibold" style={{ color: 'var(--text)' }}>Checklist ({checklist.length}):</span>
           <ul className="mt-1 space-y-0.5 list-disc list-inside">
             {checklist.slice(0, 3).map((item, i) => <li key={i}>{item}</li>)}
-            {checklist.length > 3 && <li style={{ color: 'var(--text-muted)' }}>+{checklist.length - 3}개 더...</li>}
+            {checklist.length > 3 && <li style={{ color: 'var(--text-muted)' }}>+{checklist.length - 3} more...</li>}
           </ul>
         </div>
       )}

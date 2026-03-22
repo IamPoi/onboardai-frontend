@@ -88,7 +88,7 @@ export default function AuthModal({ onClose, onSuccess }: Props) {
 
   const handleVerifyOtp = useCallback(async (e: React.FormEvent) => {
     e.preventDefault()
-    if (otp.length !== 6) { setError('6자리 코드를 입력해주세요.'); return }
+    if (otp.length !== 6) { setError('Please enter the 6-digit code.'); return }
     setError('')
     setLoading(true)
     try {
@@ -97,7 +97,7 @@ export default function AuthModal({ onClose, onSuccess }: Props) {
       onSuccess(token, pendingEmail)
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err)
-      setError(msg || '인증 실패. 다시 시도해주세요.')
+      setError(msg || 'Verification failed. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -110,7 +110,7 @@ export default function AuthModal({ onClose, onSuccess }: Props) {
       await resendOtpApi(pendingEmail)
       setResendCooldown(60)
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : '재발송 실패')
+      setError(err instanceof Error ? err.message : 'Resend failed')
     }
   }
 
@@ -141,10 +141,10 @@ export default function AuthModal({ onClose, onSuccess }: Props) {
               >
                 <span className="text-2xl">📧</span>
               </div>
-              <h2 className="text-lg font-bold" style={{ color: 'var(--text)' }}>이메일 인증</h2>
+              <h2 className="text-lg font-bold" style={{ color: 'var(--text)' }}>Email Verification</h2>
               <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>
-                <span className="font-medium" style={{ color: 'var(--text)' }}>{pendingEmail}</span>으로<br />
-                발송된 6자리 코드를 입력해주세요.
+                Enter the 6-digit code sent to<br />
+                <span className="font-medium" style={{ color: 'var(--text)' }}>{pendingEmail}</span>
               </p>
             </div>
 
@@ -175,19 +175,19 @@ export default function AuthModal({ onClose, onSuccess }: Props) {
                 disabled={loading || otp.length !== 6}
                 className="aurora-btn py-3 rounded-xl text-sm font-semibold w-full"
               >
-                {loading ? '인증 중...' : '인증 완료'}
+                {loading ? 'Verifying...' : 'Verify'}
               </button>
             </form>
 
             <div className="flex items-center justify-center gap-1 mt-4">
-              <span className="text-xs" style={{ color: 'var(--text-muted)' }}>코드를 받지 못했나요?</span>
+              <span className="text-xs" style={{ color: 'var(--text-muted)' }}>Didn't receive the code?</span>
               <button
                 onClick={handleResend}
                 disabled={resendCooldown > 0}
                 className="text-xs font-medium hover:underline"
                 style={{ color: resendCooldown > 0 ? 'var(--text-muted)' : 'var(--mint)' }}
               >
-                {resendCooldown > 0 ? `재발송 (${resendCooldown}s)` : '재발송'}
+                {resendCooldown > 0 ? `Resend (${resendCooldown}s)` : 'Resend'}
               </button>
             </div>
           </div>

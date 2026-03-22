@@ -19,7 +19,7 @@ const LAYER_BADGE: Record<string, { bg: string; color: string; border: string }>
 }
 
 interface Props {
-  lang: 'ko' | 'en'
+  lang: 'en'
   prefilledUrl?: string | null
   preloadedResult?: OnboardingResult | null
 }
@@ -52,7 +52,7 @@ function StripeCheckoutForm({
       })
 
       if (stripeError) {
-        setError(stripeError.message ?? '결제에 실패했습니다.')
+        setError(stripeError.message ?? 'Payment failed.')
         return
       }
 
@@ -65,7 +65,7 @@ function StripeCheckoutForm({
         onSuccess(result)
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : '결제 처리 중 오류가 발생했습니다.')
+      setError(err instanceof Error ? err.message : 'An error occurred while processing payment.')
     } finally {
       setLoading(false)
     }
@@ -97,9 +97,9 @@ function StripeCheckoutForm({
         {loading ? (
           <span className="flex items-center justify-center gap-2">
             <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            처리 중...
+            Processing...
           </span>
-        ) : '$5 결제하고 온보딩 가이드 생성'}
+        ) : 'Pay $5 & Generate Onboarding Guide'}
       </button>
       <button
         type="button"
@@ -107,7 +107,7 @@ function StripeCheckoutForm({
         className="text-sm transition-colors"
         style={{ color: 'var(--text-muted)' }}
       >
-        취소
+        Cancel
       </button>
     </form>
   )
@@ -135,7 +135,7 @@ function OnboardingResult({ result, repoUrl, onReset }: {
           >
             Premium
           </span>
-          <span className="text-sm font-semibold" style={{ color: 'var(--text)' }}>AI 온보딩 가이드</span>
+          <span className="text-sm font-semibold" style={{ color: 'var(--text)' }}>AI Onboarding Guide</span>
         </div>
         <div className="flex items-center gap-2">
           <button
@@ -143,14 +143,14 @@ function OnboardingResult({ result, repoUrl, onReset }: {
             className="text-xs px-3 py-1.5 rounded-lg font-medium transition-all hover:opacity-80"
             style={{ background: 'rgba(52,211,153,0.15)', color: 'var(--mint)', border: '1px solid rgba(52,211,153,0.3)' }}
           >
-            📄 PDF 다운로드
+            📄 Download PDF
           </button>
           <button
             onClick={onReset}
             className="text-xs transition-colors hover:opacity-100"
             style={{ color: 'var(--text-muted)' }}
           >
-            초기화
+            Reset
           </button>
         </div>
       </div>
@@ -166,7 +166,7 @@ function OnboardingResult({ result, repoUrl, onReset }: {
             <div className="absolute -top-12 -right-12 w-40 h-40 rounded-full pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(124,58,237,0.2), transparent 70%)', filter: 'blur(30px)' }} />
             <div className="flex items-center gap-2 mb-3 relative">
               <span className="text-xl">🏗️</span>
-              <h3 className="text-sm font-bold" style={{ color: 'var(--purple-light)' }}>프로젝트 개요</h3>
+              <h3 className="text-sm font-bold" style={{ color: 'var(--purple-light)' }}>Project Overview</h3>
             </div>
             <p className="text-sm leading-relaxed mb-3 relative" style={{ color: 'var(--text)' }}>
               {result.project_overview.summary}
@@ -197,18 +197,18 @@ function OnboardingResult({ result, repoUrl, onReset }: {
           >
             <div className="flex items-center gap-2 mb-2">
               <span className="text-xl">🏗️</span>
-              <h3 className="text-sm font-bold" style={{ color: 'var(--purple-light)' }}>아키텍처 요약</h3>
+              <h3 className="text-sm font-bold" style={{ color: 'var(--purple-light)' }}>Architecture Summary</h3>
             </div>
             <p className="text-sm leading-relaxed" style={{ color: 'var(--text)' }}>{result.architecture_summary}</p>
           </div>
         )}
 
-        {/* 아키텍처 요약 (project_overview와 함께 있을 때) */}
+        {/* Architecture Summary (with project_overview) */}
         {result.project_overview && (
           <div className="glass-card rounded-2xl p-5">
             <div className="flex items-center gap-2 mb-3">
               <span className="text-lg">🔭</span>
-              <h3 className="text-sm font-bold" style={{ color: 'var(--text)' }}>아키텍처 요약</h3>
+              <h3 className="text-sm font-bold" style={{ color: 'var(--text)' }}>Architecture Summary</h3>
             </div>
             <p className="text-sm leading-relaxed" style={{ color: 'var(--text-muted)' }}>{result.architecture_summary}</p>
           </div>
@@ -219,7 +219,7 @@ function OnboardingResult({ result, repoUrl, onReset }: {
           <div className="glass-card rounded-2xl p-5">
             <div className="flex items-center gap-2 mb-3">
               <span className="text-lg">🚀</span>
-              <h3 className="text-sm font-bold" style={{ color: 'var(--text)' }}>시작하기</h3>
+              <h3 className="text-sm font-bold" style={{ color: 'var(--text)' }}>Getting Started</h3>
             </div>
             <p className="text-xs mb-3 leading-relaxed" style={{ color: 'var(--text-muted)' }}>
               {result.getting_started.overview}
@@ -251,11 +251,11 @@ function OnboardingResult({ result, repoUrl, onReset }: {
           </div>
         )}
 
-        {/* 핵심 모듈 */}
+        {/* Core Modules */}
         <div className="glass-card rounded-2xl p-5">
           <div className="flex items-center gap-2 mb-3">
             <span className="text-lg">🔑</span>
-            <h3 className="text-sm font-bold" style={{ color: 'var(--text)' }}>핵심 모듈</h3>
+            <h3 className="text-sm font-bold" style={{ color: 'var(--text)' }}>Core Modules</h3>
           </div>
           <div className="flex flex-col gap-3">
             {modules.slice(0, 6).map((cls, i) => {
@@ -299,7 +299,7 @@ function OnboardingResult({ result, repoUrl, onReset }: {
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <span className="text-lg">📋</span>
-              <h3 className="text-sm font-bold" style={{ color: 'var(--text)' }}>온보딩 체크리스트</h3>
+              <h3 className="text-sm font-bold" style={{ color: 'var(--text)' }}>Onboarding Checklist</h3>
             </div>
             <span className="text-xs" style={{ color: 'var(--text-muted)' }}>{completedCount}/{checklist.length}</span>
           </div>
@@ -342,7 +342,7 @@ function OnboardingResult({ result, repoUrl, onReset }: {
             <div className="flex items-center gap-2 mb-2">
               <span className="text-lg">🔄</span>
               <h3 className="text-sm font-bold" style={{ color: 'var(--mint)' }}>
-                기능 흐름: {result.feature_walkthrough.feature_name}
+                Feature Flow: {result.feature_walkthrough.feature_name}
               </h3>
             </div>
             <p className="text-xs mb-3 leading-relaxed" style={{ color: 'var(--text-muted)' }}>
@@ -367,7 +367,7 @@ function OnboardingResult({ result, repoUrl, onReset }: {
           <div className="glass-card md:col-span-2 rounded-2xl p-5">
             <div className="flex items-center gap-2 mb-3">
               <span className="text-lg">📖</span>
-              <h3 className="text-sm font-bold" style={{ color: 'var(--text)' }}>핵심 용어 사전</h3>
+              <h3 className="text-sm font-bold" style={{ color: 'var(--text)' }}>Key Concepts</h3>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {result.key_concepts.map(concept => (
@@ -397,7 +397,7 @@ function OnboardingResult({ result, repoUrl, onReset }: {
             <div className="flex items-center gap-2 mb-2">
               <span className="text-lg">🌱</span>
               <h3 className="text-sm font-bold" style={{ color: 'var(--purple-light)' }}>
-                첫 기여 제안: {result.first_contribution.title}
+                First Contribution: {result.first_contribution.title}
               </h3>
             </div>
             <p className="text-xs leading-relaxed mb-3" style={{ color: 'var(--text-muted)' }}>
@@ -439,7 +439,7 @@ export default function OnboardingGuide({ lang, prefilledUrl, preloadedResult }:
   const handleRequestGuide = async () => {
     const token = getToken()
     if (!token) {
-      setError('온보딩 가이드 생성은 로그인이 필요합니다.')
+      setError('Login required to generate onboarding guide.')
       return
     }
     if (!url.trim()) return
@@ -465,7 +465,7 @@ export default function OnboardingGuide({ lang, prefilledUrl, preloadedResult }:
       setClientSecret(intent.client_secret)
       setPaymentStep('checkout')
     } catch (err) {
-      setError(err instanceof Error ? err.message : '결제 초기화 실패')
+      setError(err instanceof Error ? err.message : 'Payment initialization failed')
     }
   }
 
@@ -487,10 +487,10 @@ export default function OnboardingGuide({ lang, prefilledUrl, preloadedResult }:
               >
                 $5
               </span>
-              <h2 className="text-base font-bold" style={{ color: 'var(--text)' }}>온보딩 가이드 결제</h2>
+              <h2 className="text-base font-bold" style={{ color: 'var(--text)' }}>Onboarding Guide Payment</h2>
             </div>
             <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-              결제 후 AI가 풍부한 온보딩 가이드를 자동 생성합니다.
+              After payment, AI will automatically generate your onboarding guide.
             </p>
           </div>
           <Elements
@@ -523,8 +523,8 @@ export default function OnboardingGuide({ lang, prefilledUrl, preloadedResult }:
           className="w-10 h-10 border-4 border-t-transparent rounded-full animate-spin"
           style={{ borderColor: 'var(--purple) transparent var(--mint) transparent' }}
         />
-        <p className="text-sm" style={{ color: 'var(--text-muted)' }}>AI가 온보딩 가이드를 생성 중입니다...</p>
-        <p className="text-xs" style={{ color: 'var(--text-muted)' }}>60~90초 소요될 수 있습니다.</p>
+        <p className="text-sm" style={{ color: 'var(--text-muted)' }}>AI is generating your onboarding guide...</p>
+        <p className="text-xs" style={{ color: 'var(--text-muted)' }}>This may take 60–90 seconds.</p>
       </div>
     )
   }
@@ -544,17 +544,17 @@ export default function OnboardingGuide({ lang, prefilledUrl, preloadedResult }:
           className="rounded-xl p-4 mb-5 text-xs"
           style={{ background: 'rgba(124,58,237,0.08)', border: '1px solid rgba(124,58,237,0.2)' }}
         >
-          <p className="font-semibold mb-2" style={{ color: 'var(--purple-light)' }}>가이드에 포함되는 내용:</p>
+          <p className="font-semibold mb-2" style={{ color: 'var(--purple-light)' }}>What's included:</p>
           <div className="grid grid-cols-2 gap-1.5">
             {[
-              '🏗️ 프로젝트 개요 & 기술 스택',
-              '🚀 로컬 환경 시작 가이드',
-              '🔑 핵심 모듈 상세 분석',
-              '🔄 주요 기능 흐름 설명',
-              '📋 온보딩 체크리스트',
-              '📖 핵심 용어 사전',
-              '🌱 첫 기여 제안',
-              '📄 PDF 내보내기',
+              '🏗️ Project Overview & Tech Stack',
+              '🚀 Local Setup Guide',
+              '🔑 Core Module Analysis',
+              '🔄 Feature Flow Walkthrough',
+              '📋 Onboarding Checklist',
+              '📖 Key Concepts Glossary',
+              '🌱 First Contribution Guide',
+              '📄 PDF Export',
             ].map(item => (
               <div key={item} className="flex items-center gap-1.5" style={{ color: 'var(--text-muted)' }}>
                 <span>{item}</span>
@@ -576,7 +576,7 @@ export default function OnboardingGuide({ lang, prefilledUrl, preloadedResult }:
             disabled={!url.trim()}
             className="aurora-btn w-full py-3.5 rounded-xl font-bold text-sm"
           >
-            {STRIPE_KEY ? '온보딩 가이드 생성 ($5)' : '온보딩 가이드 생성 (무료 체험)'}
+            {STRIPE_KEY ? 'Generate Onboarding Guide ($5)' : 'Generate Onboarding Guide (Free Trial)'}
           </button>
         </div>
 
@@ -590,7 +590,7 @@ export default function OnboardingGuide({ lang, prefilledUrl, preloadedResult }:
         )}
 
         <p className="text-center text-xs mt-4" style={{ color: 'var(--text-muted)' }}>
-          {STRIPE_KEY ? '🔒 Stripe 보안 결제 · 결제 후 즉시 가이드 생성' : '🔒 결제 시스템 준비 중 — 현재 무료 체험'}
+          {STRIPE_KEY ? '🔒 Secure Stripe payment · Guide generated instantly' : '🔒 Payment system coming soon — Free trial available'}
         </p>
       </div>
     </div>

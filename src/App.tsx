@@ -39,7 +39,7 @@ const LEGEND_LAYERS = [
 
 export default function App() {
   const [state, setState] = useState<AppState>({ phase: 'idle' })
-  const { t, lang, setLang } = useLang()
+  const { t, lang } = useLang()
   const [user, setUser] = useState<UserInfo | null>(null)
   const [showAuth, setShowAuth] = useState(false)
   const [showMyPage, setShowMyPage] = useState(false)
@@ -209,20 +209,6 @@ export default function App() {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <select
-            value={lang}
-            onChange={e => setLang(e.target.value as 'ko' | 'en')}
-            style={{
-              fontFamily: 'Inter, sans-serif', fontSize: '0.75rem',
-              padding: '5px 10px', background: 'var(--surface)',
-              color: 'var(--text-muted)', border: '1px solid var(--border)',
-              borderRadius: 8, outline: 'none', cursor: 'pointer',
-            }}
-          >
-            <option value="ko">{t.lang.ko}</option>
-            <option value="en">{t.lang.en}</option>
-          </select>
-
           {user ? (
             <div style={{ position: 'relative' }} ref={userMenuRef}>
               <button
@@ -412,9 +398,9 @@ export default function App() {
 
               {/* 네비게이션 */}
               {([
-                { key: 'graph'  as const, icon: '◆', label: '아키텍처 그래프' },
-                { key: 'issues' as const, icon: '◎', label: '코드 이슈', badge: state.graph.issues?.length },
-                { key: 'guide'  as const, icon: '✦', label: 'AI 온보딩 가이드' },
+                { key: 'graph'  as const, icon: '◆', label: 'Architecture Graph' },
+                { key: 'issues' as const, icon: '◎', label: 'Code Issues', badge: state.graph.issues?.length },
+                { key: 'guide'  as const, icon: '✦', label: 'AI Onboarding Guide' },
               ] as const).map(item => (
                 <button
                   key={item.key}
@@ -458,7 +444,7 @@ export default function App() {
                   onMouseLeave={e => (e.currentTarget.style.background = 'rgba(52,211,153,0.1)')}
                 >
                   <span style={{ flexShrink: 0 }}>↓</span>
-                  <span>PDF 내보내기</span>
+                  <span>Export PDF</span>
                 </button>
               )}
 
@@ -504,15 +490,15 @@ export default function App() {
                     }}>
                       <span style={{ fontSize: '2.5rem' }}>✦</span>
                       <div style={{ textAlign: 'center' }}>
-                        <p style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--text)', marginBottom: 6 }}>AI 온보딩 가이드</p>
-                        <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>신규 개발자를 위한 AI 온보딩 가이드를 자동으로 생성합니다</p>
+                        <p style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--text)', marginBottom: 6 }}>AI Onboarding Guide</p>
+                        <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>Automatically generate an onboarding guide for new developers</p>
                       </div>
                       <button
                         onClick={() => setShowPaymentModal(true)}
                         className="aurora-btn"
                         style={{ padding: '12px 32px', borderRadius: 12, fontSize: '0.9rem' }}
                       >
-                        온보딩 가이드 생성하기 →
+                        Generate Onboarding Guide →
                       </button>
                     </div>
                   )}
@@ -530,7 +516,7 @@ export default function App() {
                         borderRightColor: 'var(--mint)',
                         animation: 'spin 0.8s linear infinite',
                       }} />
-                      <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>온보딩 가이드 생성 중... (최대 60초 소요)</p>
+                      <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Generating onboarding guide... (up to 60s)</p>
                     </div>
                   )}
 
@@ -540,7 +526,7 @@ export default function App() {
                         {inlineOnboarding.message}
                       </div>
                       <button onClick={handleOnboardingCTA} style={{ fontSize: '0.82rem', color: 'var(--mint)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>
-                        다시 시도
+                        Retry
                       </button>
                     </div>
                   )}

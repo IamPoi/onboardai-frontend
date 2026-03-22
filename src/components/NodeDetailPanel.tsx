@@ -165,7 +165,7 @@ export default function NodeDetailPanel({ node, onClose, inEdges, outEdges, isKe
 
         {inEdges.length === 0 && outEdges.length === 0 && node.data.methods.length === 0 && (
           <div style={{ fontSize: 12, color: '#9ca3af', textAlign: 'center', paddingTop: 20 }}>
-            연결된 정보 없음
+            No connections
           </div>
         )}
       </div>

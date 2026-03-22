@@ -34,7 +34,7 @@ export default function MermaidGraph({ syntax }: Props) {
   if (error) {
     return (
       <div className="p-4 text-red-500 text-sm bg-red-50 rounded-lg">
-        다이어그램 렌더링 오류: {error}
+        Diagram rendering error: {error}
       </div>
     )
   }

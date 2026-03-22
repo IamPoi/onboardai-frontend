@@ -67,7 +67,7 @@ export default function RepoForm({ onSubmit, loading }: Props) {
     setChecking(false)
 
     if (visibility === 'private') {
-      setError('🔒 비공개(private) 저장소입니다. Public 저장소만 분석할 수 있습니다.')
+      setError('🔒 Private repository. Only public repositories can be analyzed.')
       return
     }
 
@@ -98,7 +98,7 @@ export default function RepoForm({ onSubmit, loading }: Props) {
             {checking ? (
               <span className="flex items-center gap-1.5">
                 <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                확인 중...
+                Verifying...
               </span>
             ) : loading ? t.form.analyzing : t.form.submit}
           </button>
@@ -119,7 +119,7 @@ export default function RepoForm({ onSubmit, loading }: Props) {
 
         <p className="text-[11px] flex items-center gap-1" style={{ color: 'var(--text-muted)' }}>
           <span>ℹ️</span>
-          GitHub / GitLab <strong className="font-medium" style={{ color: 'rgba(255,255,255,0.5)' }}>Public</strong> 저장소만 분석 가능합니다.
+          Only <strong className="font-medium" style={{ color: 'rgba(255,255,255,0.5)' }}>Public</strong> GitHub / GitLab repositories can be analyzed.
         </p>
       </div>
     </form>

@@ -1,6 +1,4 @@
-import type { Translations } from './ko'
-
-export const en: Translations = {
+export const en = {
   header: {
     mvp: 'MVP',
   },
@@ -174,3 +172,5 @@ export const en: Translations = {
     },
   },
 }
+
+export type Translations = typeof en

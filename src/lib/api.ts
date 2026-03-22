@@ -89,7 +89,7 @@ export async function verifyPayment(paymentIntentId: string, token: string): Pro
   })
   if (!res.ok) {
     const err = await res.json().catch(() => ({}))
-    throw new Error(err.detail ?? `결제 검증 실패`)
+    throw new Error(err.detail ?? `Payment verification failed`)
   }
 }
 
